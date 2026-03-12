@@ -348,51 +348,55 @@
 
 <script>
 const BASE_USERS = [
-  { name:"유영식",   id:"1111",        password:"1111" },
-  { name:"영화학",   id:"1111",        password:"1111" },
-  { name:"황원",     id:"ar23911022",  password:"9513" },
-  { name:"최유승",   id:"ar23780705",  password:"1593" },
-  { name:"문병길",   id:"ar25680304",  password:"0304" },
-  { name:"이재승",   id:"ar25060205",  password:"0917" },
-  { name:"지현우",   id:"ar25990310",  password:"tmdals124" },
-  { name:"김현수",   id:"ar25730221",  password:"go235858532" },
-  { name:"이수현",   id:"ar25051205",  password:"1205" },
-  { name:"오미수",   id:"ar25690628",  password:"3535" },
-  { name:"김원철",   id:"ar25771120",  password:"1977wc!@" },
-  { name:"이태경",   id:"ar25041025",  password:"1025" },
-  { name:"김가연",   id:"ar25050920",  password:"Ka0509200!" },
-  { name:"강선구",   id:"ar25021011",  password:"sksk1011" },
-  { name:"이민영",   id:"ar25030615",  password:"6891" },
-  { name:"한서윤",   id:"ar25040812",  password:"0812" },
-  { name:"전유하",   id:"ar25950918",  password:"1057" },
-  { name:"김도엽",   id:"ar25051224",  password:"8888" },
-  { name:"이장운",   id:"ar25060630",  password:"1234" },
-  { name:"김창기",   id:"ar25950131",  password:"8192" },
-  { name:"강민영",   id:"ar25950725",  password:"9432" },
-  { name:"이상우",   id:"ar25030209",  password:"1083" },
-  { name:"김수환",   id:"ar24971120",  password:"su280424@@" },
-  { name:"이가을",   id:"ar24031017",  password:"mm061806" },
-  { name:"정관희",   id:"ar24050516",  password:"202020" },
-  { name:"장주빈",   id:"ar24921005",  password:"1005" },
-  { name:"장범수",   id:"ar24001101",  password:"cbs2216^" },
-  { name:"안준현",   id:"ar24050703",  password:"7742" },
-  { name:"박주은",   id:"ar24980426",  password:"Ww990202@" },
-  { name:"최지원",   id:"ar23980622",  password:"jw75302583" },
-  { name:"이창민",   id:"ar23000501",  password:"1234" },
-  { name:"정다빈",   id:"ar23020714",  password:"020714" },
-  { name:"김시우",   id:"ar24050402",  password:"0402" },
-  { name:"박순홍",   id:"ar24690830",  password:"1011" },
-  { name:"신민주",   id:"ar25030812",  password:"minju812!" },
-  { name:"배효미",   id:"ar25800929",  password:"4208" },
-  { name:"이찬희",   id:"ar24050528",  password:"0528" },
-  { name:"손민규",   id:"ar26950410",  password:"a!159159" },
-  { name:"김규리",   id:"ar26070706",  password:"12240706dg" },
-  { name:"김재인",   id:"ar26040131",  password:"janekim22" },
-  { name:"황보주은", id:"ar26050414",  password:"Hwangbo1^^" },
-  { name:"장성찬",   id:"ar26070307",  password:"frgcart9540!" },
-  { name:"임지우",   id:"ar26070526",  password:"dms55wls@@" },
-  { name:"김선규",   id:"ar26960810",  password:"5251" },
+  { name:"유영식", id:"1111", pw:"0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c" },
+  { name:"영화학", id:"1111", pw:"0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c" },
+  { name:"황원", id:"ar23911022", pw:"d84136ed3081592e049f62168a60e7a0f9039e3072dcac8cbe4054a522aeeea7" },
+  { name:"최유승", id:"ar23780705", pw:"38813d9a6e5332787f13dac070d265339c4c711beea8b21f82966684bda30e79" },
+  { name:"문병길", id:"ar25680304", pw:"3812dd069593766d28dd6fe95a40d2540631adaffe8a6fead9a684fec89ddcfd" },
+  { name:"이재승", id:"ar25060205", pw:"e614c56a130dd5c63280ed4f4fce9a3aa8e9dc875840db6bdea32aaf29abc0cf" },
+  { name:"지현우", id:"ar25990310", pw:"3cacc4318e16f9ad2ffea6968121d6f40929eb010e5425eaa0a596f1136fd05c" },
+  { name:"김현수", id:"ar25730221", pw:"54f493b1a7e4f4b076c91debbf5dbb7d04709ad30c7578870e0acefb5f31e11c" },
+  { name:"이수현", id:"ar25051205", pw:"2cec8cf0e321c284fa0c2ebef804aac18bf1cbb85546f89e7e3d0b6aa8b9d2cf" },
+  { name:"오미수", id:"ar25690628", pw:"deb2676eeef1cf8fc35f1e58cd860a000ac231550a915589dc66159806fc4a4a" },
+  { name:"김원철", id:"ar25771120", pw:"7056a28685038b72aa79aa82f71efe3bd4d12eb9d9656c9f56d0b43af6191d0b" },
+  { name:"이태경", id:"ar25041025", pw:"46372791018924b8cbc444334300f85a211d2f29a56f2bb4890780b5983fc201" },
+  { name:"김가연", id:"ar25050920", pw:"a9c6c485bccb296f5df251f79551cce6fbf6c53686f0bd362ac2895949b783dd" },
+  { name:"강선구", id:"ar25021011", pw:"edf4507428d24cff78362b02c85295059150dd3a3f3d8c3068b2dc0b8635c7d1" },
+  { name:"이민영", id:"ar25030615", pw:"f548d6697dd29f405ebb371d243002eb9babde9a3602aedbe5bc0d9ed1c6ff34" },
+  { name:"한서윤", id:"ar25040812", pw:"6e65b61d030e5ac6492802c6f619a63006e5b0e2cafc0170ab92a68083162528" },
+  { name:"전유하", id:"ar25950918", pw:"b910260d6ccd1fedb9919e9974c4b1eacf7ff1e3a4643c05cf423de2f221c06a" },
+  { name:"김도엽", id:"ar25051224", pw:"2926a2731f4b312c08982cacf8061eb14bf65c1a87cc5d70e864e079c6220731" },
+  { name:"이장운", id:"ar25060630", pw:"03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4" },
+  { name:"김창기", id:"ar25950131", pw:"864a936a35324151e1c79c44a2e903ff2497f52fa892282d340585f493c637f0" },
+  { name:"강민영", id:"ar25950725", pw:"9eb6dcea3ecc9b082a2efc3a7934d065e5268894054b1cebb57d4ca71e306961" },
+  { name:"이상우", id:"ar25030209", pw:"1090b9e9eba719a3f27dfa49de49497271d9569d00826d58b4ef83c60d0ba5b9" },
+  { name:"김수환", id:"ar24971120", pw:"6b80b939a95a6f750ab6ade6690e2c740820ec89bf6cab370bf17711f0f994f7" },
+  { name:"이가을", id:"ar24031017", pw:"5b6c0f225e01c1ede4a635e4ff6a904c7f70090e6067d0896229ae4bd08ea7ea" },
+  { name:"정관희", id:"ar24050516", pw:"cc3c49ccc51e0bb804a695f67d9f4d29c7f476149d3e79e3455440a5c92f50e7" },
+  { name:"장주빈", id:"ar24921005", pw:"7f861bcee185de001377d79e08af62e94b1e7718e2470e08520c917f8d953602" },
+  { name:"장범수", id:"ar24001101", pw:"76747c8b83d25c5bafd75967c1783f3d8ccf313c1ae49ecea73d1f5019e87119" },
+  { name:"안준현", id:"ar24050703", pw:"fa2be76c702f76cf8c70999d8c5fcc8b3aab2d81f2d9417b5379ba5bf3a18c86" },
+  { name:"박주은", id:"ar24980426", pw:"59110ceac231f5f3cf171142d3fdac5870215a59795a2b80c545efe1a7bae401" },
+  { name:"최지원", id:"ar23980622", pw:"c18c8aa13512200e8df4425060fa79574941b75d29ace885d6f62aee15aa9e58" },
+  { name:"이창민", id:"ar23000501", pw:"03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4" },
+  { name:"정다빈", id:"ar23020714", pw:"fd942ab8d3f5a706d4b8832155664a17744bcb56b005c62aa857d518719a869f" },
+  { name:"김시우", id:"ar24050402", pw:"2612d391c1eb9a05beb967f1f2adaf215a544bd5e2d88d2a13c531e56af493a6" },
+  { name:"박순홍", id:"ar24690830", pw:"3dd9c0995d54c0abd51a90f1d57b1ce77bc885fc8a7cea52dcad3c2540dda5ee" },
+  { name:"신민주", id:"ar25030812", pw:"1bd358a1258f5dca9a4d59c234952a47e335d91cb2b176c19ee1291afc727278" },
+  { name:"배효미", id:"ar25800929", pw:"12004090b1c7195a8f5ede93bb833971dc49054a35918c64586f7f1127ab22cf" },
+  { name:"이찬희", id:"ar24050528", pw:"48a85e327b158440fc52b0604058d7c6200759fd90244a1b1692fc6834bbe419" },
+  { name:"손민규", id:"ar26950410", pw:"d659f2c25f1b1aa076d87d9f17173cf4fcc3264fd99ca323ea32fef16fd0ee9f" },
+  { name:"김규리", id:"ar26070706", pw:"c1502e3ca381ca8dfefceb5c418bfcdf2ecca0bebb2dec0843e15d0f57ea5971" },
+  { name:"김재인", id:"ar26040131", pw:"8ad15c3412991c519e58aaa0d6a14a7a30a3932b433a3c528229226550519071" },
+  { name:"황보주은", id:"ar26050414", pw:"96caab8cc21bc536118def3db7c89e68a07c8540bff89fdfbf61ac4cd3d9774c" },
+  { name:"장성찬", id:"ar26070307", pw:"9a8c120a866b40a7b53239df811c65ba84a9b6531603dc90c14b942d56e8c118" },
+  { name:"임지우", id:"ar26070526", pw:"12b2acaac13c0db07e51c09f5e65507fa01c2ecc2cfd8715aec536293380a1cb" },
+  { name:"김선규", id:"ar26960810", pw:"06ccf5621b093aad4b36dc83b85a3ee61f214de3cc5f6c88f1fc6178529e38b6" },
 ];
+async function hashPw(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
 const SUPA_URL = 'https://utbyvulogzgvkyixxebc.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0Ynl2dWxvZ3pndmt5aXh4ZWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyODQxOTUsImV4cCI6MjA4ODg2MDE5NX0.UUVUckD8KqgJMszgghHwqZYVrlXZGmfAZyLQIT2vWkI';
 const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
@@ -421,7 +425,8 @@ async function doLogin() {
   const err = document.getElementById('li-err');
   err.classList.remove('on');
   // BASE_USERS 먼저 확인
-  let user = BASE_USERS.find(u => u.id === id && u.password === pw);
+  const h = await hashPw(pw);
+  let user = BASE_USERS.find(u => u.id === id && u.pw === h);
   // Supabase film_users 확인
   if (!user) {
     const { data } = await sb.from('film_users').select('*').eq('id', id).eq('password', pw).single();
