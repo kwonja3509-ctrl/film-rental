@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 | 연세예술원 영화학 기자재 대여</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            film: {
+              bg: '#0a0a0f', surface: '#13131a', card: '#1a1a24',
+              border: '#2a2a3a', accent: '#e8b84b', text: '#e8e8f0', muted: '#8888a0',
+            }
+          },
+          fontFamily: { sans: ['Noto Sans KR', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #0a0a0f; color: #e8e8f0; }
+    .form-input {
+      background: #13131a; border: 1px solid #2a2a3a; color: #e8e8f0;
+      border-radius: 6px; padding: 10px 14px; width: 100%;
+      font-size: 14px; outline: none; transition: border-color 0.2s;
+    }
+    .form-input:focus { border-color: #e8b84b; }
+    .btn {
+      padding: 10px 20px; border-radius: 6px; font-size: 13px;
+      font-weight: 600; cursor: pointer; border: none; transition: all 0.15s;
+    }
+    .btn:hover { transform: scale(1.02); }
+    .btn:active { transform: scale(0.98); }
+    .btn-gold { background: #e8b84b; color: #0a0a0f; }
+    .btn-gold:hover { background: #f5d07a; }
+    .btn-approve { background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+    .btn-approve:hover { background: rgba(74,222,128,0.25); }
+    .btn-reject { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+    .btn-reject:hover { background: rgba(248,113,113,0.25); }
+    .status-badge {
+      padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    }
+    .badge-pending { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+    .badge-approved { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+    .badge-rejected { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px); z-index: 50; display: none;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    /* 로그인 화면 */
+    #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    #app-screen { display: none; }
+    #app-screen.active { display: block; }
+  </style>
+</head>
+<body class="font-sans">
+
+  <!-- ─── 로그인 화면 ─── -->
+  <div id="login-screen">
+    <div class="w-full max-w-sm px-5">
+      <div class="rounded-2xl p-8" style="background: #13131a; border: 1px solid #2a2a3a;">
+        <div class="text-center mb-8">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4" style="background: #e8b84b;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a0a0f" stroke-width="2.5">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+          </div>
+          <h1 class="text-xl font-bold" style="color: #e8e8f0;">관리자 로그인</h1>
+          <p class="text-xs mt-1" style="color: #8888a0;">연세예술원 영화학과</p>
+        </div>
+        <div class="mb-4">
+          <label class="block text-xs mb-2" style="color: #8888a0;">비밀번호</label>
+          <input type="password" id="pw-input" placeholder="비밀번호를 입력하세요"
+                 class="form-input" onkeydown="if(event.key==='Enter') login()">
+        </div>
+        <p id="pw-error" class="text-xs mb-4 hidden" style="color: #f87171;">비밀번호가 올바르지 않습니다.</p>
+        <button onclick="login()" class="btn btn-gold w-full text-sm" style="width:100%; padding: 12px;">
+          로그인
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── 관리자 앱 ─── -->
+  <div id="app-screen">
+
+    <!-- 헤더 -->
+    <header style="background: rgba(10,10,15,0.95); border-bottom: 1px solid #1e1e2a;" class="sticky top-0 z-40">
+      <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: #e8b84b;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0a0a0f" stroke-width="2.5">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs" style="color: #8888a0;">연세예술원 영화학과</p>
+            <p class="font-bold text-sm" style="color: #e8e8f0;">기자재 대여 관리</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="index.html" class="text-xs px-3 py-1.5 rounded-md" style="color: #8888a0; border: 1px solid #2a2a3a;">
+            메인 사이트
+          </a>
+          <button onclick="logout()" class="text-xs px-3 py-1.5 rounded-md" style="color: #f87171; border: 1px solid rgba(248,113,113,0.3);">
+            로그아웃
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 메인 탭 -->
+    <div class="max-w-6xl mx-auto px-5 pt-6">
+      <div class="flex gap-1 mb-6" style="border-bottom: 1px solid #2a2a3a;">
+        <button onclick="switchAdminTab('rentals')" id="admin-tab-rentals"
+                class="text-sm font-semibold px-5 py-3 transition-colors"
+                style="color: #e8b84b; border-bottom: 2px solid #e8b84b; margin-bottom: -1px; background: none; border-left: none; border-right: none; border-top: none; cursor: pointer;">
+          대여 신청 관리
+        </button>
+        <button onclick="switchAdminTab('users')" id="admin-tab-users"
+                class="text-sm font-semibold px-5 py-3 transition-colors"
+                style="color: #8888a0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; border-left: none; border-right: none; border-top: none; cursor: pointer;">
+          회원 승인
+          <span id="user-pending-badge" class="hidden ml-1 px-1.5 py-0.5 rounded-full text-xs" style="background: #f87171; color: #fff; font-size: 10px;"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── 대여 신청 관리 탭 ── -->
+    <div id="panel-rentals" class="max-w-6xl mx-auto px-5 pb-8">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div class="rounded-xl p-4" style="background: #13131a; border: 1px solid #2a2a3a;">
+          <p class="text-xs mb-1" style="color: #8888a0;">전체 신청</p>
+          <p class="text-2xl font-bold" style="color: #e8e8f0;" id="stat-total">0</p>
+        </div>
+        <div class="rounded-xl p-4" style="background: #13131a; border: 1px solid #2a2a3a;">
+          <p class="text-xs mb-1" style="color: #fbbf24;">대기 중</p>
+          <p class="text-2xl font-bold" style="color: #fbbf24;" id="stat-pending">0</p>
+        </div>
+        <div class="rounded-xl p-4" style="background: #13131a; border: 1px solid #2a2a3a;">
+          <p class="text-xs mb-1" style="color: #4ade80;">승인 완료</p>
+          <p class="text-2xl font-bold" style="color: #4ade80;" id="stat-approved">0</p>
+        </div>
+        <div class="rounded-xl p-4" style="background: #13131a; border: 1px solid #2a2a3a;">
+          <p class="text-xs mb-1" style="color: #f87171;">거절</p>
+          <p class="text-2xl font-bold" style="color: #f87171;" id="stat-rejected">0</p>
+        </div>
+      </div>
+
+      <!-- 필터 -->
+      <div class="flex gap-2 mb-6 flex-wrap">
+        <button onclick="filterRentals('all')" id="filter-all" class="btn text-xs px-4 py-2"
+                style="background: #e8b84b; color: #0a0a0f; border-radius: 20px;">전체</button>
+        <button onclick="filterRentals('pending')" id="filter-pending" class="btn text-xs px-4 py-2"
+                style="background: #1a1a24; color: #8888a0; border: 1px solid #2a2a3a; border-radius: 20px;">대기 중</button>
+        <button onclick="filterRentals('approved')" id="filter-approved" class="btn text-xs px-4 py-2"
+                style="background: #1a1a24; color: #8888a0; border: 1px solid #2a2a3a; border-radius: 20px;">승인 완료</button>
+        <button onclick="filterRentals('rejected')" id="filter-rejected" class="btn text-xs px-4 py-2"
+                style="background: #1a1a24; color: #8888a0; border: 1px solid #2a2a3a; border-radius: 20px;">거절</button>
+        <button onclick="filterRentals('returned')" id="filter-returned" class="btn text-xs px-4 py-2"
+                style="background: #1a1a24; color: #8888a0; border: 1px solid #2a2a3a; border-radius: 20px;">반납 완료</button>
+      </div>
+
+      <!-- 신청 목록 -->
+      <div id="rentals-list" class="space-y-3"></div>
+
+      <!-- 빈 상태 -->
+      <div id="empty-state" class="hidden text-center py-20">
+        <svg class="mx-auto mb-4" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2a2a3a" stroke-width="1.5">
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+        <p style="color: #4a4a60;">신청 내역이 없습니다</p>
+      </div>
+    </div>
+
+    <!-- ── 회원 승인 탭 ── -->
+    <div id="panel-users" class="hidden max-w-6xl mx-auto px-5 pb-8">
+      <p class="text-sm mb-6" style="color: #8888a0;">회원가입 신청 목록입니다. 승인 전까지 로그인이 불가합니다.</p>
+      <!-- 테스트 버튼 v6 -->
+      <button type="button" onclick="alert('JS 작동 확인 v6')" style="margin-bottom:12px;padding:8px 16px;background:#e8b84b;color:#000;border:none;cursor:pointer;border-radius:6px;">JS 테스트</button>
+      <div id="users-list" class="space-y-3"></div>
+      <div id="users-empty" class="hidden text-center py-20">
+        <svg class="mx-auto mb-4" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2a2a3a" stroke-width="1.5">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+        <p style="color: #4a4a60;">승인 대기 중인 회원이 없습니다</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── 상세 모달 ─── -->
+  <div class="modal-overlay" id="detail-modal">
+    <div class="rounded-2xl p-6 max-w-md w-full mx-5 max-h-[90vh] overflow-y-auto"
+         style="background: #1a1a24; border: 1px solid #2a2a3a;">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="font-bold text-lg" style="color: #e8e8f0;">신청 상세</h3>
+        <button onclick="closeDetailModal()" style="color: #8888a0;" class="hover:text-white transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div id="detail-content"></div>
+      <div class="flex gap-2 mt-6" id="detail-actions"></div>
+    </div>
+  </div>
+
+  <script>
+    // ─── 비밀번호 (Phase 3 이후 환경변수로 관리 권장) ───
+    const ADMIN_PASSWORD = '0000';
+
+    // ─── Supabase 초기화 ───
+    const SUPA_URL = 'https://utbyvulogzgvkyixxebc.supabase.co';
+    const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0Ynl2dWxvZ3pndmt5aXh4ZWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyODQxOTUsImV4cCI6MjA4ODg2MDE5NX0.UUVUckD8KqgJMszgghHwqZYVrlXZGmfAZyLQIT2vWkI';
+    let sb;
+    try {
+      sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+    } catch(e) {
+      console.error('Supabase 초기화 실패:', e);
+    }
+
+    // ─── 데이터 ───
+    let rentals = [];
+    let currentFilter = 'all';
+    let selectedRentalId = null;
+    let currentAdminTab = 'rentals';
+
+    async function loadRentals() {
+      const r = await fetch(SUPA_URL + '/rest/v1/rentals?order=created_at.desc', {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+      });
+      rentals = r.ok ? await r.json() : [];
+    }
+
+    // ─── 로그인 ───
+    async function login() {
+      const pw = document.getElementById('pw-input').value;
+      if (pw === ADMIN_PASSWORD) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-screen').classList.add('active');
+        await loadRentals();
+        renderAll();
+      } else {
+        document.getElementById('pw-error').classList.remove('hidden');
+        document.getElementById('pw-input').value = '';
+      }
+    }
+
+    function logout() {
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('app-screen').classList.remove('active');
+    }
+
+    // ─── 탭 전환 ───
+    function switchAdminTab(tab) {
+      currentAdminTab = tab;
+      const tabs = ['rentals', 'users'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`admin-tab-${t}`);
+        const panel = document.getElementById(`panel-${t}`);
+        if (t === tab) {
+          btn.style.color = '#e8b84b';
+          btn.style.borderBottom = '2px solid #e8b84b';
+          panel.classList.remove('hidden');
+        } else {
+          btn.style.color = '#8888a0';
+          btn.style.borderBottom = '2px solid transparent';
+          panel.classList.add('hidden');
+        }
+      });
+      if (tab === 'users') renderUsers();
+    }
+
+    // ─── 통계 업데이트 ───
+    function updateStats() {
+      document.getElementById('stat-total').textContent = rentals.length;
+      document.getElementById('stat-pending').textContent = rentals.filter(r => r.status === 'pending').length;
+      document.getElementById('stat-approved').textContent = rentals.filter(r => r.status === 'approved').length;
+      document.getElementById('stat-rejected').textContent = rentals.filter(r => r.status === 'rejected').length;
+    }
+
+    // ─── 날짜 포맷 ───
+    function formatDate(str) {
+      return str ? str.replace(/-/g, '.') : '-';
+    }
+    function formatDateTime(str) {
+      if (!str) return '-';
+      const d = new Date(str);
+      return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+
+    // ─── 상태 배지 ───
+    function statusBadge(status) {
+      const map = {
+        pending:  ['badge-pending',  '대기 중'],
+        approved: ['badge-approved', '승인 완료'],
+        rejected: ['badge-rejected', '거절'],
+        returned: ['', '반납 완료'],
+      };
+      const [cls, label] = map[status] || ['', status];
+      return `<span class="status-badge ${cls}" style="${status==='returned'?'background:rgba(100,100,120,0.2);color:#8888a0;border:1px solid #3a3a4a;':''}">${label}</span>`;
+    }
+
+    // ─── 목록 렌더링 ───
+    function renderRentals() {
+      // attach original index before sorting so actions can find correct item
+      const indexed = rentals.map((r, i) => ({...r, _idx: i}));
+      const sorted = indexed.sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
+      const filtered = currentFilter === 'all' ? sorted : sorted.filter(r => r.status === currentFilter);
+      const list = document.getElementById('rentals-list');
+      const empty = document.getElementById('empty-state');
+
+      if (filtered.length === 0) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      list.innerHTML = filtered.map((r) => {
+        const rid = r.id != null ? r.id : r._idx;
+        const isEquip = r.type === '기자재대여' || r.equipment;
+        const isRoom = r.type === '편집실대관';
+        const subtitleParts = [];
+        if (r.projectTitle || r.project_title) subtitleParts.push(`📽️ ${r.projectTitle || r.project_title}`);
+        if (isRoom) subtitleParts.push(`🖥️ ${r.room === 'room1' ? '편집실 1호' : '편집실 2호'}`);
+        const dateStr = r.startDate ? `${r.startDate} → ${r.endDate}` :
+                        r.start_date ? `${formatDate(r.start_date)} → ${formatDate(r.end_date)}` : '';
+        const eqList = r.equipment || r.items || [];
+        const eqStr = Array.isArray(eqList) && eqList.length
+          ? eqList.slice(0,2).join(', ') + (eqList.length > 2 ? ` 외 ${eqList.length-2}건` : '')
+          : '';
+        return `
+        <div class="rounded-xl p-5 transition-all cursor-pointer"
+             style="background: #13131a; border: 1px solid #2a2a3a;"
+             onclick="openDetail(${JSON.stringify(rid)})"
+             onmouseover="this.style.borderColor='#3a3a4a'"
+             onmouseout="this.style.borderColor='#2a2a3a'">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1 flex-wrap">
+                <span class="font-semibold" style="color: #e8e8f0;">${r.userName || r.name}</span>
+                <span style="color: #4a4a60; font-size: 12px;">${r.userId || r.student_id || ''}</span>
+                <span class="text-xs px-2 py-0.5 rounded" style="background: #1a1a30; color: #8888a0;">${isRoom ? '편집실' : '기자재'}</span>
+                ${statusBadge(r.status)}
+              </div>
+              ${subtitleParts.length ? `<p class="text-sm mb-1" style="color: #8888a0;">${subtitleParts.join('  ')}</p>` : ''}
+              <p class="text-xs" style="color: #4a4a60;">
+                ${dateStr}${dateStr && eqStr ? ' · ' : ''}${eqStr}
+              </p>
+            </div>
+            <div class="flex gap-2 flex-shrink-0">
+              ${r.status === 'pending' ? `
+                <button type="button" class="btn btn-approve text-xs px-3 py-1.5" data-rid="${rid}" onclick="event.stopPropagation(); changeStatus(this.getAttribute('data-rid'), 'approved')">승인</button>
+                <button type="button" class="btn btn-reject text-xs px-3 py-1.5" data-rid="${rid}" onclick="event.stopPropagation(); changeStatus(this.getAttribute('data-rid'), 'rejected')">거절</button>
+              ` : r.status === 'approved' ? `
+                <button type="button" class="btn text-xs px-3 py-1.5" style="background:rgba(99,102,241,0.15);color:#a5b4fc;border:1px solid rgba(99,102,241,0.3);" data-rid="${rid}" onclick="event.stopPropagation(); changeStatus(this.getAttribute('data-rid'), 'returned')">반납</button>
+              ` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ─── 회원 목록 렌더링 ───
+    async function renderUsers() {
+      const r = await fetch(SUPA_URL + '/rest/v1/film_users?approved=eq.false&order=created_at.desc', {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+      });
+      const pending = r.ok ? await r.json() : [];
+      const list = document.getElementById('users-list');
+      const empty = document.getElementById('users-empty');
+      // 회원 승인 대기 배지 업데이트
+      const badge = document.getElementById('user-pending-badge');
+      const pendingCount = pending ? pending.length : 0;
+      if (pendingCount > 0) {
+        badge.textContent = pendingCount;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+      if (!pending || pending.length === 0) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      list.innerHTML = pending.map(u => {
+        const safeId = u.id.replace(/"/g, '&quot;');
+        return `
+        <div class="rounded-xl p-5" style="background: #13131a; border: 1px solid #2a2a3a;">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-semibold" style="color: #e8e8f0;">${u.name}</span>
+                <span class="text-xs px-2 py-0.5 rounded" style="background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25);">승인 대기</span>
+              </div>
+              <p class="text-xs" style="color: #8888a0;">아이디: ${u.id}</p>
+            </div>
+            <div class="flex gap-2">
+              <button type="button" class="btn btn-approve text-xs px-4 py-2" data-uid="${safeId}" onclick="approveUser(this.getAttribute('data-uid'))">✓ 승인</button>
+              <button type="button" class="btn btn-reject text-xs px-4 py-2" data-uid="${safeId}" onclick="rejectUser(this.getAttribute('data-uid'))">✗ 거절</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ─── 회원 승인 / 거절 (fetch API 직접 사용) ───
+    function approveUser(userId) {
+      alert('approveUser 호출됨: ' + userId);
+      fetch(SUPA_URL + '/rest/v1/film_users?id=eq.' + encodeURIComponent(userId), {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPA_KEY,
+          'Authorization': 'Bearer ' + SUPA_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ approved: true })
+      }).then(function(r) {
+        if (!r.ok) {
+          r.text().then(function(t) { alert('승인 실패: ' + t); });
+        } else {
+          renderUsers();
+        }
+      }).catch(function(e) { alert('오류: ' + e.message); });
+    }
+    function rejectUser(userId) {
+      if (!confirm(userId + ' 회원을 거절/삭제하시겠습니까?')) return;
+      fetch(SUPA_URL + '/rest/v1/film_users?id=eq.' + encodeURIComponent(userId), {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPA_KEY,
+          'Authorization': 'Bearer ' + SUPA_KEY,
+          'Prefer': 'return=minimal'
+        }
+      }).then(function(r) {
+        if (!r.ok) {
+          r.text().then(function(t) { alert('삭제 실패: ' + t); });
+        } else {
+          renderUsers();
+        }
+      }).catch(function(e) { alert('오류: ' + e.message); });
+    }
+
+    // ─── 필터 ───
+    function filterRentals(filter) {
+      currentFilter = filter;
+      ['all', 'pending', 'approved', 'rejected', 'returned'].forEach(f => {
+        const btn = document.getElementById(`filter-${f}`);
+        if (!btn) return;
+        if (f === filter) {
+          btn.style.background = '#e8b84b';
+          btn.style.color = '#0a0a0f';
+          btn.style.border = 'none';
+        } else {
+          btn.style.background = '#1a1a24';
+          btn.style.color = '#8888a0';
+          btn.style.border = '1px solid #2a2a3a';
+        }
+      });
+      renderRentals();
+    }
+
+    // ─── 상태 변경 ───
+    function changeStatus(rid, status) {
+      var rental = rentals.find(function(r) { return r.id === rid; });
+      if (!rental && typeof rid === 'number') rental = rentals[rid];
+      if (!rental) return;
+      fetch(SUPA_URL + '/rest/v1/rentals?id=eq.' + encodeURIComponent(rental.id), {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPA_KEY,
+          'Authorization': 'Bearer ' + SUPA_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ status: status })
+      }).then(function(r) {
+        if (!r.ok) {
+          r.text().then(function(t) { alert('상태 변경 실패: ' + t); });
+        } else {
+          rental.status = status;
+          renderAll();
+          closeDetailModal();
+        }
+      }).catch(function(e) { alert('오류: ' + e.message); });
+    }
+
+    // ─── 상세 모달 ───
+    function openDetail(rid) {
+      let r = rentals.find(r => r.id === rid);
+      if (!r && typeof rid === 'number') r = rentals[rid];
+      if (!r) return;
+      selectedRentalId = rid;
+      const isRoom = r.type === '편집실대관';
+      const eqList = r.equipment || r.items || [];
+      const infoRows = [
+        ['이름', r.userName || r.name],
+        ['아이디', r.userId || r.student_id || '-'],
+        ['시작일', r.startDate || formatDate(r.start_date)],
+        isRoom ? ['종료일', r.endDate || formatDate(r.end_date)] : ['반납 예정', r.endDate || formatDate(r.end_date)],
+      ];
+      if (isRoom) infoRows.push(['편집실', r.room === 'room1' ? '편집실 1호' : '편집실 2호']);
+      if (r.projectTitle || r.project_title) infoRows.push(['작품명', r.projectTitle || r.project_title]);
+
+      document.getElementById('detail-content').innerHTML = `
+        <div class="space-y-4">
+          <div>
+            <p class="text-xs mb-3" style="color: #8888a0;">신청 정보</p>
+            <div class="grid grid-cols-2 gap-3">
+              ${infoRows.map(([k,v]) => `
+                <div class="rounded-lg p-3" style="background: #13131a;">
+                  <p class="text-xs mb-1" style="color: #4a4a60;">${k}</p>
+                  <p class="text-sm font-medium" style="color: #e8e8f0;">${v || '-'}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          ${Array.isArray(eqList) && eqList.length ? `
+          <div>
+            <p class="text-xs mb-3" style="color: #8888a0;">신청 기자재</p>
+            <div class="rounded-lg p-4 space-y-1.5" style="background: #13131a;">
+              ${eqList.map(eq => `
+                <div class="flex items-center gap-2">
+                  <div class="w-1 h-1 rounded-full flex-shrink-0" style="background: #e8b84b;"></div>
+                  <p class="text-sm" style="color: #e8e8f0;">${typeof eq === 'object' ? eq.name : eq}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>` : ''}
+          ${r.message ? `
+          <div>
+            <p class="text-xs mb-3" style="color: #8888a0;">요청사항</p>
+            <div class="rounded-lg p-4" style="background: #13131a;">
+              <p class="text-sm" style="color: #c8c8d8;">${r.message}</p>
+            </div>
+          </div>` : ''}
+          <div class="flex items-center justify-between pt-2" style="border-top: 1px solid #2a2a3a;">
+            <div>${statusBadge(r.status)}</div>
+            <p class="text-xs" style="color: #4a4a60;">접수 ${formatDateTime(r.createdAt || r.created_at)}</p>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('detail-actions').innerHTML = r.status === 'pending' ? `
+        <button type="button" class="btn btn-approve flex-1 text-sm" data-rid="${rid}" onclick="changeStatus(this.getAttribute('data-rid'), 'approved')">✓ 승인</button>
+        <button type="button" class="btn btn-reject flex-1 text-sm" data-rid="${rid}" onclick="changeStatus(this.getAttribute('data-rid'), 'rejected')">✗ 거절</button>
+      ` : r.status === 'approved' ? `
+        <button type="button" class="btn flex-1 text-sm" style="background:rgba(99,102,241,0.15);color:#a5b4fc;border:1px solid rgba(99,102,241,0.3);" data-rid="${rid}" onclick="changeStatus(this.getAttribute('data-rid'), 'returned')">반납 처리</button>
+        <p class="text-xs self-center" style="color: #4a4a60;">승인 완료</p>
+      ` : `<p class="text-xs" style="color: #4a4a60;">처리 완료된 신청입니다</p>`;
+
+      document.getElementById('detail-modal').classList.add('active');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detail-modal').classList.remove('active');
+    }
+
+    // 모달 바깥 클릭 시 닫기
+    document.getElementById('detail-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeDetailModal();
+    });
+
+    function renderAll() {
+      updateStats();
+      renderRentals();
+      if (currentAdminTab === 'users') renderUsers();
+    }
+  </script>
+</body>
+</html>

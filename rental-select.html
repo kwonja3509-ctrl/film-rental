@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>대여 신청 | 연세예술원 영화학</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F8F8F6;
+      --surface: #FFFFFF;
+      --border: #E8E8E4;
+      --heading: #1A1A18;
+      --body: #4A4A46;
+      --muted: #8A8A86;
+      --blue: #3784F4;
+      --blue-light: #EEF4FF;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+      --r: 10px; --r-lg: 16px; --r-xl: 20px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', 'Noto Sans KR', -apple-system, sans-serif;
+      background: var(--bg); color: var(--body); font-size: 14px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh; display: flex; flex-direction: column;
+    }
+
+    /* ── 헤더 ── */
+    header {
+      background: var(--heading); position: sticky; top: 0; z-index: 100;
+    }
+    .nav-inner {
+      max-width: 1040px; margin: 0 auto; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between; height: 56px;
+    }
+    .nav-logo img { height: 28px; object-fit: contain; }
+    .nav-back {
+      font-size: 13px; color: rgba(255,255,255,0.65); background: none; border: none;
+      cursor: pointer; font-family: inherit; padding: 6px 12px; border-radius: 7px;
+      display: flex; align-items: center; gap: 6px; transition: all 0.15s; text-decoration: none;
+    }
+    .nav-back:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+    /* ── 메인 ── */
+    main {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 48px 24px;
+    }
+    .page-label {
+      font-size: 11px; font-weight: 600; color: var(--blue); letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 12px;
+    }
+    .page-title {
+      font-size: clamp(24px, 4vw, 36px); font-weight: 700; color: var(--heading);
+      letter-spacing: -0.03em; margin-bottom: 8px; text-align: center;
+    }
+    .page-sub {
+      font-size: 14px; color: var(--muted); margin-bottom: 48px; text-align: center;
+    }
+
+    /* ── 선택 카드 ── */
+    .cards {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+      width: 100%; max-width: 640px;
+    }
+    @media (max-width: 520px) { .cards { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: var(--r-xl); padding: 32px 28px; cursor: pointer;
+      transition: all 0.18s; box-shadow: var(--shadow-sm); text-decoration: none;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .card:hover {
+      border-color: var(--heading); transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+    .card:active { transform: translateY(0); }
+
+    .card-icon {
+      width: 48px; height: 48px; border-radius: var(--r-lg);
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+    }
+    .card-icon.blue { background: var(--blue-light); }
+    .card-icon.dark { background: #F0F0EE; }
+
+    .card-title {
+      font-size: 18px; font-weight: 700; color: var(--heading);
+      letter-spacing: -0.02em;
+    }
+    .card-desc {
+      font-size: 13px; color: var(--muted); line-height: 1.6;
+    }
+    .card-arrow {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 12px; font-weight: 600; color: var(--blue); margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <img src="./brand_logo/logo.png" alt="연세예술원 영화학">
+    </div>
+    <a href="index.html" class="nav-back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      돌아가기
+    </a>
+  </div>
+</header>
+
+<main>
+  <p class="page-label">대여 신청</p>
+  <h1 class="page-title">무엇을 신청하시겠어요?</h1>
+  <p class="page-sub">신청 유형을 선택해주세요</p>
+
+  <div class="cards">
+    <a href="equipment-rental.html" class="card">
+      <div class="card-icon blue">🎬</div>
+      <div class="card-title">장비 대여</div>
+      <p class="card-desc">카메라, 렌즈, 조명, 오디오 등 촬영에 필요한 기자재를 대여합니다.</p>
+      <div class="card-arrow">
+        신청하기
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
+    </a>
+
+    <a href="edit-room.html" class="card">
+      <div class="card-icon dark">🖥️</div>
+      <div class="card-title">편집실 대관</div>
+      <p class="card-desc">편집실을 예약하고 영상 편집 작업 공간을 이용합니다.</p>
+      <div class="card-arrow">
+        신청하기
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
+    </a>
+  </div>
+</main>
+
+<script>
+  function selectRental(type) {
+    sessionStorage.setItem('rental_type', type);
+  }
+</script>
+</body>
+</html>

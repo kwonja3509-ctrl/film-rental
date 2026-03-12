@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>장비 대여 | 연세예술원 영화학</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #F8F8F6; --surface: #FFFFFF; --border: #E8E8E4;
+      --heading: #1A1A18; --body: #4A4A46; --muted: #8A8A86; --muted-light: #B8B8B4;
+      --blue: #3784F4; --blue-light: #EEF4FF;
+      --green: #44C67F; --green-light: rgba(68,198,127,0.1);
+      --red: #EF4444; --red-light: #FFF0F0;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+      --r: 10px; --r-lg: 16px; --r-xl: 20px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', 'Noto Sans KR', sans-serif;
+      background: var(--bg); color: var(--body); font-size: 14px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased; min-height: 100vh;
+    }
+
+    /* ── 헤더 ── */
+    header { background: var(--heading); position: sticky; top: 0; z-index: 100; }
+    .nav-inner {
+      max-width: 1040px; margin: 0 auto; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between; height: 56px;
+    }
+    .nav-logo img { height: 28px; object-fit: contain; }
+    .nav-logo span { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: -0.02em; }
+    .nav-back {
+      font-size: 13px; color: rgba(255,255,255,0.65); background: none; border: none;
+      cursor: pointer; font-family: inherit; padding: 6px 12px; border-radius: 7px;
+      display: flex; align-items: center; gap: 6px; transition: all 0.15s; text-decoration: none;
+    }
+    .nav-back:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    #nav-user { font-size: 12px; color: rgba(255,255,255,0.6); }
+
+    /* ── 입력 ── */
+    .inp {
+      background: var(--surface); border: 1.5px solid var(--border); color: var(--heading);
+      border-radius: var(--r); padding: 10px 14px; width: 100%; font-size: 14px;
+      outline: none; transition: border-color 0.15s, box-shadow 0.15s; font-family: inherit;
+    }
+    .inp:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(55,132,244,0.1); }
+    .inp::placeholder { color: var(--muted-light); }
+
+    /* ── 버튼 ── */
+    .btn-dark {
+      background: var(--heading); color: #fff; font-weight: 600;
+      padding: 12px 24px; border-radius: var(--r); border: none; cursor: pointer;
+      font-size: 14px; transition: all 0.15s; font-family: inherit;
+    }
+    .btn-dark:hover { background: #333; transform: scale(1.01); }
+    .btn-dark:active { transform: scale(0.99); }
+    .btn-dark:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* ── 에러/성공 ── */
+    .err { color: var(--red); font-size: 12px; margin-top: 6px; display: none; }
+    .err.on { display: block; }
+
+    /* ── 체크리스트 ── */
+    .ec input[type="checkbox"] { display: none; }
+    .ec label {
+      display: flex; align-items: center; gap: 9px; padding: 9px 11px;
+      border-radius: var(--r); cursor: pointer; border: 1.5px solid var(--border);
+      background: var(--bg); transition: all 0.12s;
+    }
+    .ec label:hover { border-color: var(--blue); background: var(--blue-light); }
+    .ec input:checked + label { border-color: var(--blue); background: var(--blue-light); }
+    .ec input:checked + label .ck { background: var(--blue); border-color: var(--blue); }
+    .ck {
+      width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.12s;
+    }
+
+    /* ── 폼 섹션 ── */
+    .fsec { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 12px; }
+    .flabel { font-size: 10px; font-weight: 700; color: var(--blue); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+
+    /* ── 메인 컨테이너 ── */
+    .container { max-width: 640px; margin: 0 auto; padding: 40px 24px 60px; }
+    .page-label { font-size: 11px; font-weight: 600; color: var(--blue); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+    .page-title { font-size: 26px; font-weight: 700; color: var(--heading); letter-spacing: -0.03em; margin-bottom: 4px; }
+    .page-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+
+    /* ── 로그인 게이트 ── */
+    #login-gate {
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r-xl);
+      padding: 40px 28px; text-align: center; display: none;
+    }
+    #login-gate.on { display: block; }
+    #form-section { display: none; }
+    #form-section.on { display: block; }
+
+    /* ── 로그인 폼 (게이트) ── */
+    .gate-form { max-width: 320px; margin: 0 auto; text-align: left; }
+
+    /* ── 탭 ── */
+    .tab-bar { display: flex; gap: 1px; padding: 3px; border-radius: 9px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 20px; }
+    .tab-btn { flex: 1; padding: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; border-radius: 7px; transition: all 0.15s; font-family: inherit; }
+    .tab-btn.on { background: var(--heading); color: #fff; }
+    .tab-btn:not(.on) { background: transparent; color: var(--muted); }
+    .tab-pane { display: none; }
+    .tab-pane.on { display: block; }
+
+    /* ── 완료 ── */
+    @keyframes popIn { 0%{transform:scale(0.6);opacity:0} 70%{transform:scale(1.06)} 100%{transform:scale(1);opacity:1} }
+    .pop-in { animation: popIn 0.3s ease forwards; }
+    #done-section { display: none; text-align: center; }
+    #done-section.on { display: block; }
+
+    /* ── 오버레이 (회원가입/찾기) ── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(26,26,24,0.5);
+      backdrop-filter: blur(4px); z-index: 200;
+      display: none; align-items: center; justify-content: center; padding: 16px;
+    }
+    .overlay.on { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl);
+      width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto;
+      padding: 32px 28px; box-shadow: var(--shadow-lg);
+    }
+    .btn-outline {
+      background: transparent; color: var(--muted); border: 1.5px solid var(--border);
+      padding: 10px 20px; border-radius: var(--r); cursor: pointer; font-size: 13px;
+      width: 100%; transition: all 0.15s; font-family: inherit;
+    }
+    .btn-outline:hover { border-color: var(--heading); color: var(--heading); }
+    .suc { color: #1a7a4a; font-size: 12px; margin-top: 6px; display: none;
+      background: var(--green-light); border: 1px solid rgba(68,198,127,0.25);
+      border-radius: 6px; padding: 8px 12px; }
+    .suc.on { display: block; }
+
+    /* ── 카테고리 탭 ── */
+    .cat-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+    .cat-tab {
+      padding:6px 14px; border-radius:20px; font-size:12px; font-weight:500;
+      cursor:pointer; border:1.5px solid var(--border); background:var(--bg);
+      color:var(--muted); transition:all 0.12s; font-family:inherit;
+    }
+    .cat-tab.on { background:var(--blue); border-color:var(--blue); color:#fff; }
+    .cat-tab:hover:not(.on) { border-color:var(--heading); color:var(--heading); }
+
+    /* ── 하위 카테고리 탭 ── */
+    .sub-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+    .sub-tab {
+      padding:5px 12px; border-radius:16px; font-size:11px; font-weight:500;
+      cursor:pointer; border:1.5px solid var(--border); background:var(--bg);
+      color:var(--muted); transition:all 0.12s; font-family:inherit;
+    }
+    .sub-tab.on { background:var(--heading); border-color:var(--heading); color:#fff; }
+    .sub-tab:hover:not(.on) { border-color:var(--heading); color:var(--heading); }
+
+    /* ── 장비 카드 ── */
+    .ec { position: relative; }
+    .ec input[type="checkbox"] { display: none; }
+    .ec label {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      border-radius: var(--r); cursor: pointer;
+      border: 1.5px solid var(--border); background: var(--surface);
+      transition: all 0.12s; user-select: none;
+    }
+    .ec label:hover { border-color: var(--blue); background: var(--blue-light); }
+    .ec.selected label { border-color: var(--blue); background: var(--blue-light); }
+    .ec .equip-icon { width:46px; height:46px; border-radius:8px; background:#F0F0EE; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; transition:background 0.12s; }
+    .ec.selected .equip-icon { background: #dce9ff; }
+    .ec .equip-check {
+      position: absolute; top: 7px; right: 7px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--blue); display: none;
+      align-items: center; justify-content: center;
+    }
+    .ec.selected .equip-check { display: flex; }
+    .ec .equip-name { font-size: 13px; font-weight: 500; color: var(--heading); line-height: 1.4; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <img src="./brand_logo/logo.png" alt="" onerror="this.style.display='none'">
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button id="nav-user" onclick="openHistory()"
+        style="display:none;font-size:12px;color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:inherit;transition:all 0.15s;"
+        onmouseover="this.style.background='rgba(255,255,255,0.18)'"
+        onmouseout="this.style.background='rgba(255,255,255,0.1)'"></button>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <a href="index.html" class="nav-back">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          홈
+        </a>
+        <a href="rental-select.html" class="nav-back">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          뒤로
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <p class="page-label">장비 대여</p>
+  <h1 class="page-title">기자재 대여 신청</h1>
+  <p class="page-sub">촬영에 필요한 기자재를 선택하고 신청서를 작성하세요</p>
+
+  <!-- 로그인 게이트 -->
+  <div id="login-gate" class="on">
+    <div style="font-size:32px;margin-bottom:12px;">🔒</div>
+    <h2 style="font-size:18px;font-weight:700;color:var(--heading);margin-bottom:6px;letter-spacing:-0.02em;">로그인이 필요합니다</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:28px;">기자재 대여 신청은 재학생만 가능합니다</p>
+
+    <div class="tab-bar" style="max-width:320px;margin:0 auto 20px;">
+      <button class="tab-btn on" id="gt-login-btn" onclick="switchGateTab('login')">로그인</button>
+      <button class="tab-btn" id="gt-signup-btn" onclick="switchGateTab('signup')">회원가입</button>
+    </div>
+
+    <!-- 로그인 탭 -->
+    <div class="tab-pane on" id="gt-login">
+      <div class="gate-form">
+        <div style="margin-bottom:10px;">
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">아이디</label>
+          <input type="text" id="li-id" class="inp" placeholder="아이디를 입력하세요" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">비밀번호</label>
+          <input type="password" id="li-pw" class="inp" placeholder="비밀번호를 입력하세요" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <p class="err" id="li-err">아이디 또는 비밀번호가 올바르지 않습니다.</p>
+        <button class="btn-dark" style="width:100%;margin-top:14px;" onclick="doLogin()">로그인</button>
+        <div style="display:flex;justify-content:space-between;margin-top:12px;">
+          <button onclick="switchGateTab('find')" style="font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;font-family:inherit;">아이디 · 비밀번호 찾기</button>
+          <button onclick="switchGateTab('signup')" style="font-size:12px;color:var(--blue);font-weight:500;background:none;border:none;cursor:pointer;font-family:inherit;">회원가입 →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 회원가입 탭 -->
+    <div class="tab-pane" id="gt-signup">
+      <div class="gate-form">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">이름 <span style="color:var(--blue);">*</span></label>
+            <input type="text" id="su-name" class="inp" placeholder="실명">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">아이디 (학번) <span style="color:var(--blue);">*</span></label>
+            <input type="text" id="su-id" class="inp" placeholder="학번 또는 아이디">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">비밀번호 <span style="color:var(--blue);">*</span></label>
+            <input type="password" id="su-pw" class="inp" placeholder="4자리 이상">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">비밀번호 확인 <span style="color:var(--blue);">*</span></label>
+            <input type="password" id="su-pw2" class="inp" placeholder="비밀번호 재입력">
+          </div>
+        </div>
+        <p class="err" id="su-err"></p>
+        <p class="suc" id="su-ok">가입 완료! 로그인해주세요.</p>
+        <button class="btn-dark" style="width:100%;margin-top:14px;" onclick="doSignup()">가입하기</button>
+        <button class="btn-outline" style="margin-top:8px;" onclick="switchGateTab('login')">이미 계정이 있어요</button>
+      </div>
+    </div>
+
+    <!-- 찾기 탭 -->
+    <div class="tab-pane" id="gt-find">
+      <div class="gate-form">
+        <div class="tab-bar">
+          <button class="tab-btn on" id="ft-id-btn" onclick="switchFindTab('id')">아이디 찾기</button>
+          <button class="tab-btn" id="ft-pw-btn" onclick="switchFindTab('pw')">비밀번호 찾기</button>
+        </div>
+        <div class="tab-pane on" id="ft-id">
+          <div style="margin-bottom:10px;">
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">이름</label>
+            <input type="text" id="fi-name" class="inp" placeholder="가입한 이름">
+          </div>
+          <p class="err" id="fi-err"></p>
+          <div class="suc" id="fi-res"></div>
+          <button class="btn-dark" style="width:100%;margin-top:14px;" onclick="doFindId()">아이디 찾기</button>
+        </div>
+        <div class="tab-pane" id="ft-pw">
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px;">
+            <div>
+              <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">아이디</label>
+              <input type="text" id="fp-id" class="inp" placeholder="아이디">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">이름</label>
+              <input type="text" id="fp-name" class="inp" placeholder="이름">
+            </div>
+          </div>
+          <p class="err" id="fp-err"></p>
+          <div class="suc" id="fp-res"></div>
+          <button class="btn-dark" style="width:100%;margin-top:14px;" onclick="doFindPw()">비밀번호 확인</button>
+        </div>
+        <button class="btn-outline" style="margin-top:10px;" onclick="switchGateTab('login')">로그인으로 돌아가기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 신청서 폼 -->
+  <div id="form-section">
+
+    <!-- 기자재 이용 규정 -->
+    <div id="rules-eq-section" style="margin-bottom:20px;">
+      <button type="button" onclick="toggleRulesEq()" id="rules-eq-toggle"
+        style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);cursor:pointer;font-family:inherit;transition:all 0.15s;">
+        <span style="font-size:13px;font-weight:600;color:var(--heading);display:flex;align-items:center;gap:8px;">
+          <span style="font-size:16px;">📋</span> 기자재 이용 규정 확인하기
+        </span>
+        <svg id="rules-eq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5" style="transition:transform 0.2s;flex-shrink:0;">
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
+      </button>
+      <div id="rules-eq-content" style="display:none;background:var(--surface);border:1.5px solid var(--border);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);padding:20px 22px;font-size:13px;color:var(--body);line-height:1.8;max-height:320px;overflow-y:auto;">
+        <p style="font-size:15px;font-weight:700;color:var(--heading);margin-bottom:16px;letter-spacing:-0.02em;">연세예술원 영화학 기자재 대여 규정</p>
+        <p style="font-weight:700;color:var(--heading);margin-bottom:6px;">제1장 총칙</p>
+        <p style="margin-bottom:4px;"><strong>제1조 (목적)</strong> 본 규정은 예술원의 기자재 운영과 관리에 관한 사항을 규정함으로써 교육 및 창작활동을 지원하고 기자재의 효율적 운영을 도모함을 목적으로 한다.</p>
+        <p style="margin-bottom:12px;"><strong>제2조 (적용범위)</strong> 본 규정은 예술원이 보유한 모든 촬영, 음향, 조명 및 편집 장비에 적용된다.</p>
+        <p style="font-weight:700;color:var(--heading);margin-bottom:6px;">제2장 관리체계</p>
+        <p style="margin-bottom:4px;"><strong>제1조 (주임교수의 권한)</strong></p>
+        <ul style="margin:0 0 10px 18px;display:flex;flex-direction:column;gap:3px;">
+          <li>기자재 운영 정책 수립 및 변경</li>
+          <li>기자재 담당 인력 임명</li>
+          <li>장비 대여 승인</li>
+          <li>외부 촬영 허가</li>
+          <li>분쟁 조정 및 제재 조치 결정</li>
+        </ul>
+        <p style="margin-bottom:4px;"><strong>제2조 (행정실 업무)</strong></p>
+        <ul style="margin:0 0 14px 18px;display:flex;flex-direction:column;gap:3px;">
+          <li>기자재 대장 관리</li>
+          <li>예산 집행 및 회계 관리</li>
+        </ul>
+        <p style="font-weight:700;color:var(--heading);margin-bottom:6px;">부칙</p>
+        <p style="margin-bottom:3px;"><strong>제1조 (시행일)</strong> 본 규정은 2025년 3월 4일부터 시행한다.</p>
+        <p style="margin-bottom:12px;"><strong>제2조 (규정 개정)</strong> 본 규정의 개정은 주임교수의 발의로 학과 회의를 거쳐 시행한다.</p>
+        <div style="padding-top:12px;border-top:1px solid var(--border);">
+          <p style="font-size:12px;color:var(--muted);">시행일: 2025년 3월 4일 &nbsp;|&nbsp; 개정일: 2025년 3월 23일</p>
+          <p style="font-size:12px;color:var(--muted);">연세예술원 영화학 주임교수 유영식</p>
+        </div>
+      </div>
+      <div id="rules-eq-agree-wrap" style="display:none;padding:14px 18px;background:var(--surface);border:1.5px solid var(--border);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--body);">
+          <input type="checkbox" id="rules-eq-agree" style="width:16px;height:16px;accent-color:var(--blue);cursor:pointer;">
+          <span>기자재 대여 규정을 확인하고 동의합니다 <span style="color:var(--blue);">*</span></span>
+        </label>
+      </div>
+    </div>
+
+    <form id="rf" onsubmit="handleRental(event)">
+      <div class="fsec">
+        <p class="flabel">01 &nbsp; 신청자 정보</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">이름 <span style="color:var(--blue);">*</span></label>
+            <input type="text" name="name" id="rf-name" class="inp" required placeholder="홍길동">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">학번 <span style="color:var(--blue);">*</span></label>
+            <input type="text" name="student_id" id="rf-sid" class="inp" required placeholder="학번">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">연락처 <span style="color:var(--blue);">*</span></label>
+            <input type="tel" name="phone" class="inp" required placeholder="010-0000-0000">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">이메일 <span style="color:var(--blue);">*</span></label>
+            <input type="email" name="email" class="inp" required placeholder="example@yonsei.ac.kr">
+          </div>
+        </div>
+      </div>
+      <div class="fsec">
+        <p class="flabel">02 &nbsp; 대여 일정</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">대여 시작일 <span style="color:var(--blue);">*</span></label>
+            <input type="date" name="start_date" id="rf-start" class="inp" required>
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">반납 예정일 <span style="color:var(--blue);">*</span></label>
+            <input type="date" name="end_date" id="rf-end" class="inp" required>
+          </div>
+        </div>
+        <div id="date-duration-warn" style="display:none;margin-top:10px;background:#FFF7ED;border:1.5px solid #F59E0B;border-radius:var(--r);padding:10px 14px;font-size:12px;color:#92400E;line-height:1.6;">
+          ⚠️ <strong>3일 이상 대여는 불가합니다.</strong><br>
+          3일 이상 대여가 필요한 경우 기자재 부장에게 개별 연락해주세요.
+        </div>
+      </div>
+      <div class="fsec">
+        <p class="flabel">03 &nbsp; 기자재 선택</p>
+        <p style="font-size:11px;color:var(--muted-light);margin-bottom:12px;">여러 개 선택 가능합니다</p>
+        <div id="rf-cat-tabs" class="cat-tabs"></div>
+        <div id="rf-sub-tabs" class="sub-tabs" style="display:none;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="rf-equip"></div>
+        <!-- 선택된 기자재 요약 -->
+        <div id="selected-summary" style="display:none;margin-top:14px;background:var(--blue-light);border:1.5px solid var(--blue);border-radius:var(--r);padding:12px 14px;">
+          <p style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:8px;letter-spacing:0.04em;">선택된 기자재 <span id="selected-count" style="background:var(--blue);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;"></span></p>
+          <div id="selected-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        </div>
+      </div>
+      <div class="fsec">
+        <p class="flabel">04 &nbsp; 사용 목적</p>
+        <div style="margin-bottom:10px;">
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">작품명 / 프로젝트명 <span style="color:var(--blue);">*</span></label>
+          <input type="text" name="project_title" class="inp" required placeholder="예: 단편영화 〈봄〉">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">추가 요청사항</label>
+          <textarea name="message" rows="3" class="inp" style="resize:none;" placeholder="특이사항이 있으면 남겨주세요"></textarea>
+        </div>
+      </div>
+      <p class="err" id="rf-err" style="margin-bottom:10px;"></p>
+      <button type="submit" class="btn-dark" id="rf-btn" style="width:100%;">대여 신청하기</button>
+    </form>
+  </div>
+
+  <!-- 완료 -->
+  <div id="done-section">
+    <div class="pop-in" style="width:64px;height:64px;background:var(--green-light);border:2px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+    </div>
+    <h2 style="font-size:22px;font-weight:700;color:var(--heading);margin-bottom:8px;letter-spacing:-0.02em;">신청 완료!</h2>
+    <p style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:16px;">대여 신청이 접수되었습니다.<br>관리자 승인 후 연락드릴게요.</p>
+    <div id="done-items" style="text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:24px;"></div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button onclick="openHistory()" class="btn-outline" style="padding:10px 24px;">내 신청 내역 보기</button>
+      <a href="index.html" class="btn-dark" style="display:inline-block;text-decoration:none;padding:10px 24px;">메인으로</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── 내 신청 내역 오버레이 ── -->
+<div class="overlay" id="m-history" onclick="if(event.target===this)closeHistory()" style="display:none;position:fixed;inset:0;background:rgba(26,26,24,0.5);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border-radius:var(--r-xl);padding:28px;width:100%;max-width:460px;margin:20px;box-shadow:var(--shadow-lg);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h3 style="font-size:17px;font-weight:700;color:var(--heading);letter-spacing:-0.02em;">내 신청 내역</h3>
+      <button onclick="closeHistory()" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="history-list" style="max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+</div>
+
+<script>
+const BASE_USERS = [
+  { name:"유영식",   id:"1111",        password:"1111" },
+  { name:"영화학",   id:"1111",        password:"1111" },
+  { name:"황원",     id:"ar23911022",  password:"9513" },
+  { name:"최유승",   id:"ar23780705",  password:"1593" },
+  { name:"문병길",   id:"ar25680304",  password:"0304" },
+  { name:"이재승",   id:"ar25060205",  password:"0917" },
+  { name:"지현우",   id:"ar25990310",  password:"tmdals124" },
+  { name:"김현수",   id:"ar25730221",  password:"go235858532" },
+  { name:"이수현",   id:"ar25051205",  password:"1205" },
+  { name:"오미수",   id:"ar25690628",  password:"3535" },
+  { name:"김원철",   id:"ar25771120",  password:"1977wc!@" },
+  { name:"이태경",   id:"ar25041025",  password:"1025" },
+  { name:"김가연",   id:"ar25050920",  password:"Ka0509200!" },
+  { name:"강선구",   id:"ar25021011",  password:"sksk1011" },
+  { name:"이민영",   id:"ar25030615",  password:"6891" },
+  { name:"한서윤",   id:"ar25040812",  password:"0812" },
+  { name:"전유하",   id:"ar25950918",  password:"1057" },
+  { name:"김도엽",   id:"ar25051224",  password:"8888" },
+  { name:"이장운",   id:"ar25060630",  password:"1234" },
+  { name:"김창기",   id:"ar25950131",  password:"8192" },
+  { name:"강민영",   id:"ar25950725",  password:"9432" },
+  { name:"이상우",   id:"ar25030209",  password:"1083" },
+  { name:"김수환",   id:"ar24971120",  password:"su280424@@" },
+  { name:"이가을",   id:"ar24031017",  password:"mm061806" },
+  { name:"정관희",   id:"ar24050516",  password:"202020" },
+  { name:"장주빈",   id:"ar24921005",  password:"1005" },
+  { name:"장범수",   id:"ar24001101",  password:"cbs2216^" },
+  { name:"안준현",   id:"ar24050703",  password:"7742" },
+  { name:"박주은",   id:"ar24980426",  password:"Ww990202@" },
+  { name:"최지원",   id:"ar23980622",  password:"jw75302583" },
+  { name:"이창민",   id:"ar23000501",  password:"1234" },
+  { name:"정다빈",   id:"ar23020714",  password:"020714" },
+  { name:"김시우",   id:"ar24050402",  password:"0402" },
+  { name:"박순홍",   id:"ar24690830",  password:"1011" },
+  { name:"신민주",   id:"ar25030812",  password:"minju812!" },
+  { name:"배효미",   id:"ar25800929",  password:"4208" },
+  { name:"이찬희",   id:"ar24050528",  password:"0528" },
+  { name:"손민규",   id:"ar26950410",  password:"a!159159" },
+  { name:"김규리",   id:"ar26070706",  password:"12240706dg" },
+  { name:"김재인",   id:"ar26040131",  password:"janekim22" },
+  { name:"황보주은", id:"ar26050414",  password:"Hwangbo1^^" },
+  { name:"장성찬",   id:"ar26070307",  password:"frgcart9540!" },
+  { name:"임지우",   id:"ar26070526",  password:"dms55wls@@" },
+  { name:"김선규",   id:"ar26960810",  password:"5251" },
+];
+const SUPA_URL = 'https://utbyvulogzgvkyixxebc.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0Ynl2dWxvZ3pndmt5aXh4ZWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyODQxOTUsImV4cCI6MjA4ODg2MDE5NX0.UUVUckD8KqgJMszgghHwqZYVrlXZGmfAZyLQIT2vWkI';
+const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+
+function getAllUsers() {
+  return [...BASE_USERS, ...JSON.parse(localStorage.getItem('film_users')||'[]')];
+}
+
+const EQUIPMENT = {
+  카메라: {
+    바디: [
+      {id:'c1',  name:'Sony FX6'},
+      {id:'c2',  name:'Sony FX3 1번'},
+      {id:'c3',  name:'Sony FX3 2번'},
+      {id:'c4',  name:'Sony FX3 3번'},
+      {id:'c5',  name:'Sony FX3 4번'},
+      {id:'c6',  name:'Sony A7C 1번'},
+      {id:'c7',  name:'Sony A7C 2번'},
+      {id:'c8',  name:'GoPro Hero 11 Black 1번'},
+      {id:'c9',  name:'GoPro Hero 11 Black 2번'},
+      {id:'c10', name:'DJI 드론'},
+    ],
+    렌즈: [
+      {id:'l1',  name:'COOKE SP3 SET'},
+      {id:'l2',  name:'Sony FE 35mm GM 1번'},
+      {id:'l3',  name:'Sony FE 35mm GM 2번'},
+      {id:'l4',  name:'Sony FE 35mm GM 3번'},
+      {id:'l5',  name:'Sony E-Mount F1.8 컴팩트 렌즈'},
+      {id:'l6',  name:'Sony FE 70-200mm GM 1번'},
+      {id:'l7',  name:'Sony FE 70-200mm GM 2번'},
+      {id:'l8',  name:'Sony FE 70-200mm GM 3번'},
+      {id:'l9',  name:'Sony FE 24-70mm GM 1번'},
+      {id:'l10', name:'Sony FE 24-70mm GM 2번'},
+      {id:'l11', name:'Sony FE 24-70mm GM 3번'},
+      {id:'l12', name:'Sony 85mm f/1.4 GM 1번'},
+      {id:'l13', name:'Sony 85mm f/1.4 GM 2번'},
+      {id:'l14', name:'Sony 85mm f/1.4 GM 3번'},
+    ],
+    '삼각대&짐벌': [
+      {id:'t1',  name:'카토니 포커스 22씨네'},
+      {id:'t2',  name:'iFootage GazelleTripod TC9 1번'},
+      {id:'t3',  name:'iFootage GazelleTripod TC9 2번'},
+      {id:'t4',  name:'iFootage GazelleTripod TC9 3번(펜바x)'},
+      {id:'t5',  name:'DJI 로닌 프로 2 짐벌 1번'},
+      {id:'t6',  name:'DJI 로닌 프로 2 짐벌 2번'},
+      {id:'t7',  name:'틸타 링그립'},
+      {id:'t8',  name:'이지리그'},
+      {id:'t9',  name:'숄더리그(핸들+패드 구성)'},
+      {id:'t10', name:'movmax 그립달리 pro kit'},
+    ],
+    부속품: [
+      {id:'ac1',  name:'샷건 마이크 1번'},
+      {id:'ac2',  name:'샷건 마이크 2번'},
+      {id:'ac3',  name:'샷건 마이크 3번'},
+      {id:'ac4',  name:'더미 배터리'},
+      {id:'ac5',  name:'팔로우 포커스 수동 1번'},
+      {id:'ac6',  name:'팔로우 포커스 수동 2번'},
+      {id:'ac7',  name:'팔로우 포커스 수동 3번'},
+      {id:'ac8',  name:'Nucleus 무선 팔로우 포커스'},
+      {id:'ac9',  name:'매트박스 1번'},
+      {id:'ac10', name:'매트박스 2번'},
+      {id:'ac11', name:'매트박스 3번'},
+      {id:'ac12', name:'매트박스 4번'},
+      {id:'ac13', name:'매트박스 5번'},
+      {id:'ac14', name:'매트박스 6번'},
+      {id:'ac15', name:'도브테일(도브테일+로드+베이스 구성) 1번'},
+      {id:'ac16', name:'도브테일(도브테일+로드+베이스 구성) 2번'},
+      {id:'ac17', name:'도브테일(도브테일+로드+베이스 구성) 3번'},
+      {id:'ac18', name:'쿠포 애플박스 1번'},
+      {id:'ac19', name:'매직암 1번'},
+      {id:'ac20', name:'매직암 2번'},
+      {id:'ac21', name:'매직암 3번'},
+      {id:'ac22', name:'스몰리그 툴 키트 1번'},
+      {id:'ac23', name:'홀리랜드 송수신기 세트 1번'},
+    ],
+    모니터: [
+      {id:'mo1', name:'HOLLYLAND MARS-M1 1번'},
+      {id:'mo2', name:'HOLLYLAND MARS-M1 2번'},
+      {id:'mo3', name:'HOLLYLAND MARS-M1 3번'},
+      {id:'mo4', name:'Smaller indie 7'},
+      {id:'mo5', name:'아트모스 쇼군 7인치'},
+      {id:'mo6', name:'TVLogic LVM-181S 18.5IN FHD PBP LCD Monitor'},
+    ],
+  },
+  조명: {
+    조명: [
+      {id:'li1',  name:'씨네로이드 120W 1번'},
+      {id:'li2',  name:'씨네로이드 120W 2번'},
+      {id:'li3',  name:'씨네로이드 120W 3번'},
+      {id:'li4',  name:'씨네로이드 120W 4번'},
+      {id:'li5',  name:'씨네로이드 120W 5번'},
+      {id:'li6',  name:'씨네로이드 120W 6번'},
+      {id:'li7',  name:'SmallRig RC 220B 1번'},
+      {id:'li8',  name:'SmallRig RC 220B 2번'},
+      {id:'li9',  name:'SmallRig RC 220B 3번'},
+      {id:'li10', name:'SmallRig RC 220B 4번'},
+      {id:'li11', name:'SmallRig RC 220B 5번'},
+      {id:'li12', name:'SmallRig RC 220B 6번'},
+      {id:'li13', name:'SmallRig RC 220B 7번'},
+      {id:'li14', name:'SmallRig RC 220B 8번'},
+      {id:'li15', name:'SmallRig RC 220B 9번'},
+      {id:'li16', name:'Aputure amaran F21C'},
+      {id:'li17', name:'Aputure amaran F22C'},
+      {id:'li18', name:'Aputure 600x pro'},
+      {id:'li19', name:'Aputure 600c pro'},
+      {id:'li20', name:'Aputure MC 조명'},
+      {id:'li21', name:'Aputure 1200d pro'},
+      {id:'li22', name:'프레넬 렌즈 1번'},
+      {id:'li23', name:'프레넬 렌즈 2번'},
+      {id:'li24', name:'프레넬 렌즈 3번'},
+      {id:'li25', name:'Skypanel S60 1번'},
+      {id:'li26', name:'Skypanel S60 2번'},
+      {id:'li27', name:'Skypanel S60 3번'},
+    ],
+    고보: [
+      {id:'go1', name:'고보&디퓨저 (총괄에게 개별 연락 후 수령)'},
+      {id:'go2', name:'Lee 필터 (총괄에게 개별 연락 후 수령)'},
+    ],
+    스탠드: [
+      {id:'st1', name:'베이비 콤보 1번'},
+      {id:'st2', name:'베이비 콤보 2번'},
+      {id:'st3', name:'C스탠드&A스탠드 (총괄에게 개별 연락 후 수령)'},
+    ],
+  },
+  오디오: [
+    {id:'a1',  name:'블림프 1번'},
+    {id:'a2',  name:'블림프 2번'},
+    {id:'a3',  name:'블림프 3번'},
+    {id:'a4',  name:'RODE NTG4 붐폴 1번'},
+    {id:'a5',  name:'RODE NTG4 붐폴 2번'},
+    {id:'a6',  name:'RODE NTG4 붐폴 3번'},
+    {id:'a7',  name:'K-Tek 붐폴'},
+    {id:'a8',  name:'타스캠 레코더 1번'},
+    {id:'a9',  name:'타스캠 레코더 2번'},
+    {id:'a10', name:'타스캠 레코더 3번'},
+    {id:'a11', name:'ZOOM F8 PRO 레코더'},
+    {id:'a12', name:'무선 핀마이크 SET 1'},
+    {id:'a13', name:'무선 핀마이크 SET 2'},
+    {id:'a14', name:'무선 핀마이크 SET 3'},
+    {id:'a15', name:'무선 핀마이크 SET 4'},
+  ],
+  악세서리: {
+    '가방/카트': [
+      {id:'bg1',  name:'씨네 카트'},
+      {id:'bg2',  name:'웨건 1번'},
+      {id:'bg3',  name:'웨건 2번'},
+      {id:'bg4',  name:'웨건 3번'},
+      {id:'bg5',  name:'카메라 가방 1번'},
+      {id:'bg6',  name:'카메라 가방 2번'},
+      {id:'bg7',  name:'카메라 가방 3번'},
+      {id:'bg8',  name:'카메라 가방 (백팩형) 1번'},
+      {id:'bg9',  name:'카메라 가방 (백팩형) 2번'},
+      {id:'bg10', name:'카메라 가방 (백팩형) 3번'},
+    ],
+    라인: [
+      {id:'ln1', name:'SDI·HDMI 라인 (총괄에게 개별 연락 후 수령)'},
+    ],
+    배터리: [
+      {id:'bt1', name:'배터리·충전기 (총괄에게 개별 연락 후 수령)'},
+    ],
+    SD: [
+      {id:'sd1',  name:'Sony 80GB CFexpress Type A 1번'},
+      {id:'sd2',  name:'Sony 160GB CFexpress Type A 1번'},
+      {id:'sd3',  name:'Sony 160GB CFexpress Type A 2번'},
+      {id:'sd4',  name:'Sony 160GB CFexpress Type A 3번'},
+      {id:'sd5',  name:'Sony 160GB CFexpress Type A 4번'},
+      {id:'sd6',  name:'Sony 160GB CFexpress Type A 5번'},
+      {id:'sd7',  name:'Sony 160GB CFexpress Type A 6번'},
+      {id:'sd8',  name:'CFexpress Type A SD 리더기 1번'},
+      {id:'sd9',  name:'CFexpress Type A SD 리더기 2번'},
+      {id:'sd10', name:'CFexpress Type A SD 리더기 3번'},
+      {id:'sd11', name:'CFexpress Type A SD 리더기 4번'},
+    ],
+  },
+};
+
+let currentUser = null;
+
+function showForm() {
+  document.getElementById('login-gate').classList.remove('on');
+  document.getElementById('form-section').classList.add('on');
+}
+
+/* ── 게이트 탭 ── */
+function switchGateTab(t) {
+  ['login','signup','find'].forEach(k => {
+    document.getElementById(`gt-${k}`)?.classList.toggle('on', k===t);
+    document.getElementById(`gt-${k}-btn`)?.classList.toggle('on', k===t);
+  });
+}
+function switchFindTab(t) {
+  ['id','pw'].forEach(k => {
+    document.getElementById(`ft-${k}`).classList.toggle('on', k===t);
+    document.getElementById(`ft-${k}-btn`).classList.toggle('on', k===t);
+  });
+}
+
+/* ── 로그인 ── */
+async function doLogin() {
+  const id  = document.getElementById('li-id').value.trim();
+  const pw  = document.getElementById('li-pw').value;
+  const err = document.getElementById('li-err');
+  err.classList.remove('on');
+  // BASE_USERS 먼저 확인
+  let user = BASE_USERS.find(u => u.id === id && u.password === pw);
+  // Supabase film_users 확인
+  if (!user) {
+    const { data } = await sb.from('film_users').select('*').eq('id', id).eq('password', pw).single();
+    user = data;
+  }
+  if (!user) { err.classList.add('on'); return; }
+  if (user.approved === false) {
+    err.textContent = '관리자 승인 대기 중입니다. 승인 후 로그인이 가능합니다.';
+    err.classList.add('on'); return;
+  }
+  currentUser = user;
+  sessionStorage.setItem('film_user', JSON.stringify(user));
+  const navUser = document.getElementById('nav-user');
+  navUser.textContent = `${user.name} 님 ▾`;
+  navUser.style.display = 'block';
+  document.getElementById('rf-name').value = user.name;
+  document.getElementById('rf-sid').value  = user.id;
+  showForm();
+}
+
+/* ── 회원가입 ── */
+async function doSignup() {
+  const name = document.getElementById('su-name').value.trim();
+  const id   = document.getElementById('su-id').value.trim();
+  const pw   = document.getElementById('su-pw').value;
+  const pw2  = document.getElementById('su-pw2').value;
+  const err  = document.getElementById('su-err');
+  const ok   = document.getElementById('su-ok');
+  err.classList.remove('on'); ok.classList.remove('on');
+  if (!name||!id||!pw) { err.textContent='모든 항목을 입력해주세요.'; err.classList.add('on'); return; }
+  if (pw.length<4)      { err.textContent='비밀번호는 4자리 이상이어야 합니다.'; err.classList.add('on'); return; }
+  if (pw!==pw2)          { err.textContent='비밀번호가 일치하지 않습니다.'; err.classList.add('on'); return; }
+  if (BASE_USERS.find(u=>u.id===id)) { err.textContent='이미 등록된 계정입니다.'; err.classList.add('on'); return; }
+  const { error } = await sb.from('film_users').insert({ id, name, password: pw, approved: false });
+  if (error) {
+    if (error.code === '23505') { err.textContent='이미 등록된 아이디입니다.'; }
+    else { err.textContent='오류가 발생했습니다. 다시 시도해주세요.'; }
+    err.classList.add('on'); return;
+  }
+  ok.textContent = '신청 완료! 관리자 승인 후 로그인이 가능합니다.';
+  ok.classList.add('on');
+  ['su-name','su-id','su-pw','su-pw2'].forEach(i=>document.getElementById(i).value='');
+  setTimeout(()=>{ ok.classList.remove('on'); }, 4000);
+}
+
+/* ── 아이디 찾기 ── */
+function doFindId() {
+  const name = document.getElementById('fi-name').value.trim();
+  const err = document.getElementById('fi-err'); const res = document.getElementById('fi-res');
+  err.classList.remove('on'); res.classList.remove('on');
+  if (!name) { err.textContent='이름을 입력해주세요.'; err.classList.add('on'); return; }
+  const matches = getAllUsers().filter(u=>u.name===name);
+  if (!matches.length) { err.textContent='해당 이름으로 등록된 계정이 없습니다.'; err.classList.add('on'); return; }
+  const ids = [...new Set(matches.map(u=>u.id))];
+  res.innerHTML = `<strong>${name}</strong> 님의 아이디: ` + ids.map(id=>`<span style="font-family:monospace;color:var(--blue);">${id}</span>`).join(', ');
+  res.classList.add('on');
+}
+
+/* ── 비밀번호 찾기 ── */
+function doFindPw() {
+  const id = document.getElementById('fp-id').value.trim();
+  const name = document.getElementById('fp-name').value.trim();
+  const err = document.getElementById('fp-err'); const res = document.getElementById('fp-res');
+  err.classList.remove('on'); res.classList.remove('on');
+  if (!id||!name) { err.textContent='아이디와 이름을 모두 입력해주세요.'; err.classList.add('on'); return; }
+  const user = getAllUsers().find(u=>u.id===id&&u.name===name);
+  if (!user) { err.textContent='일치하는 계정 정보가 없습니다.'; err.classList.add('on'); return; }
+  res.innerHTML = `비밀번호: <span style="font-family:monospace;color:var(--blue);">${user.password}</span>`;
+  res.classList.add('on');
+}
+
+/* ── 기자재 렌더링 ── */
+let currentCat = '카메라';
+let currentSubCat = '바디';
+const CAT_ICONS    = { 카메라:'📷', 조명:'💡', 오디오:'🎤', 악세서리:'🎒' };
+const SUBCAT_ICONS = { 바디:'📷', 렌즈:'🔭', '삼각대&짐벌':'🎯', 부속품:'🔧', 모니터:'🖥️', 조명:'💡', 고보:'🪟', 스탠드:'🏗', '가방/카트':'🎒', 라인:'🔌', 배터리:'🔋', SD:'💾' };
+
+function isNested(cat) { return !Array.isArray(EQUIPMENT[cat]); }
+
+function toggleEquip(card) {
+  const cb = card.querySelector('input[type="checkbox"]');
+  cb.checked = !cb.checked;
+  card.classList.toggle('selected', cb.checked);
+  updateSelectedSummary();
+}
+
+function updateSelectedSummary() {
+  const checked = Array.from(document.querySelectorAll('#rf-equip input[type="checkbox"]:checked'));
+  const summary = document.getElementById('selected-summary');
+  const list = document.getElementById('selected-list');
+  const count = document.getElementById('selected-count');
+  if (checked.length === 0) {
+    summary.style.display = 'none';
+    return;
+  }
+  summary.style.display = 'block';
+  count.textContent = checked.length + '개';
+  list.innerHTML = checked.map(cb =>
+    `<span style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--blue);border-radius:20px;padding:3px 6px 3px 10px;font-size:12px;color:var(--blue);font-weight:500;">
+      ${cb.value}
+      <button type="button" onclick="deselectEquip('${cb.id}')"
+        style="display:flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--blue);border:none;cursor:pointer;flex-shrink:0;padding:0;">
+        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </span>`
+  ).join('');
+}
+
+function deselectEquip(cbId) {
+  const cb = document.getElementById(cbId);
+  if (!cb) return;
+  cb.checked = false;
+  cb.closest('.ec').classList.remove('selected');
+  updateSelectedSummary();
+}
+
+function toggleRulesEq() {
+  const content   = document.getElementById('rules-eq-content');
+  const agreeWrap = document.getElementById('rules-eq-agree-wrap');
+  const chevron   = document.getElementById('rules-eq-chevron');
+  const isOpen    = content.style.display === 'block';
+  content.style.display   = isOpen ? 'none' : 'block';
+  agreeWrap.style.display = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+function buildCard(item, cat, subcat, visible) {
+  const icon = subcat ? (SUBCAT_ICONS[subcat] || CAT_ICONS[cat]) : (CAT_ICONS[cat] || '📦');
+  return `
+    <div class="ec" data-cat="${cat}" data-subcat="${subcat||''}" style="${visible?'':'display:none'}" onclick="toggleEquip(this)">
+      <input type="checkbox" id="rfe-${item.id}" name="equipment" value="${item.name}">
+      <label for="rfe-${item.id}" onclick="event.preventDefault()">
+        <div class="equip-icon">${icon}</div>
+        <span class="equip-name">${item.name}</span>
+      </label>
+      <div class="equip-check">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+    </div>`;
+}
+
+function updateSubTabs() {
+  const el = document.getElementById('rf-sub-tabs');
+  if (isNested(currentCat)) {
+    el.innerHTML = Object.keys(EQUIPMENT[currentCat]).map(sub =>
+      `<button class="sub-tab${sub===currentSubCat?' on':''}" type="button" onclick="switchSubCat('${sub}')">${sub}</button>`
+    ).join('');
+    el.style.display = 'flex';
+  } else {
+    el.innerHTML = ''; el.style.display = 'none';
+  }
+}
+
+function updateCardVisibility() {
+  document.querySelectorAll('#rf-equip [data-cat]').forEach(card => {
+    const catOk = card.dataset.cat === currentCat;
+    const subOk = !isNested(currentCat) || card.dataset.subcat === currentSubCat;
+    card.style.display = (catOk && subOk) ? '' : 'none';
+  });
+}
+
+function renderEquip() {
+  // 상위 탭
+  document.getElementById('rf-cat-tabs').innerHTML = Object.keys(EQUIPMENT).map(cat =>
+    `<button class="cat-tab${cat===currentCat?' on':''}" type="button" onclick="switchCat('${cat}')">${cat}</button>`
+  ).join('');
+
+  // 하위 탭
+  updateSubTabs();
+
+  // 장비 카드 전체 (show/hide로 체크 상태 유지)
+  let html = '';
+  Object.entries(EQUIPMENT).forEach(([cat, data]) => {
+    if (Array.isArray(data)) {
+      data.forEach(item => { html += buildCard(item, cat, null, cat === currentCat); });
+    } else {
+      Object.entries(data).forEach(([subcat, items]) => {
+        items.forEach(item => {
+          html += buildCard(item, cat, subcat, cat === currentCat && subcat === currentSubCat);
+        });
+      });
+    }
+  });
+  document.getElementById('rf-equip').innerHTML = html;
+}
+
+function switchCat(cat) {
+  currentCat = cat;
+  currentSubCat = isNested(cat) ? Object.keys(EQUIPMENT[cat])[0] : null;
+  document.querySelectorAll('.cat-tab').forEach(btn => btn.classList.toggle('on', btn.textContent === cat));
+  updateSubTabs();
+  updateCardVisibility();
+}
+
+function switchSubCat(subcat) {
+  currentSubCat = subcat;
+  document.querySelectorAll('.sub-tab').forEach(btn => btn.classList.toggle('on', btn.textContent === subcat));
+  updateCardVisibility();
+}
+
+/* ── 날짜 기본값 ── */
+function setDateDefaults() {
+  const today = new Date().toISOString().split('T')[0];
+  const s = document.getElementById('rf-start');
+  const e = document.getElementById('rf-end');
+  s.min = today; e.min = today;
+
+  function checkDuration() {
+    const warn = document.getElementById('date-duration-warn');
+    if (!s.value || !e.value) { if (warn) warn.style.display = 'none'; return; }
+    const days = (new Date(e.value) - new Date(s.value)) / (1000 * 60 * 60 * 24);
+    if (warn) warn.style.display = days >= 3 ? 'block' : 'none';
+  }
+
+  s.addEventListener('change', () => { e.min = s.value; checkDuration(); });
+  e.addEventListener('change', checkDuration);
+}
+
+/* ── 폼 제출 ── */
+async function handleRental(ev) {
+  ev.preventDefault();
+  const btn = document.getElementById('rf-btn');
+  const errEl = document.getElementById('rf-err');
+  errEl.classList.remove('on');
+  const form = ev.target;
+  const checked = Array.from(form.querySelectorAll('[name="equipment"]:checked'));
+  if (!checked.length) { errEl.textContent='대여할 기자재를 하나 이상 선택해주세요.'; errEl.classList.add('on'); return; }
+  if (form.start_date.value > form.end_date.value) { errEl.textContent='반납일이 대여 시작일보다 빠를 수 없습니다.'; errEl.classList.add('on'); return; }
+  const rentalDays = (new Date(form.end_date.value) - new Date(form.start_date.value)) / (1000 * 60 * 60 * 24);
+  if (rentalDays >= 3) { errEl.textContent='3일 이상 대여는 불가합니다. 기자재 부장에게 개별 연락해주세요.'; errEl.classList.add('on'); return; }
+  if (!document.getElementById('rules-eq-agree').checked) { errEl.textContent='기자재 대여 규정에 동의해주세요.'; errEl.classList.add('on'); return; }
+  btn.disabled=true; btn.textContent='처리 중...';
+  await new Promise(r=>setTimeout(r,600));
+
+  if (currentUser) {
+    await sb.from('rentals').insert({
+      user_id: currentUser.id,
+      user_name: currentUser.name,
+      type: '장비대여',
+      items: checked.map(c => c.value),
+      start_date: form.start_date.value,
+      end_date: form.end_date.value,
+      project_title: form.project_title.value || '',
+      message: form.message.value || '',
+      status: 'pending'
+    });
+  }
+
+  // 완료 화면에 선택한 기자재 표시
+  const doneItems = document.getElementById('done-items');
+  if (doneItems) {
+    doneItems.innerHTML = `<p style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px;letter-spacing:0.06em;">신청 기자재</p>` +
+      checked.map(c => `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">
+        <span style="width:5px;height:5px;background:var(--blue);border-radius:50%;flex-shrink:0;"></span>
+        <span style="font-size:13px;color:var(--heading);">${c.value}</span>
+      </div>`).join('');
+  }
+
+  document.getElementById('form-section').classList.remove('on');
+  document.getElementById('done-section').classList.add('on');
+}
+
+/* ── 내 신청 내역 ── */
+async function openHistory() {
+  if (!currentUser) return;
+  const list = document.getElementById('history-list');
+  list.innerHTML = `<p style="text-align:center;color:var(--muted);padding:24px 0;font-size:13px;">불러오는 중...</p>`;
+  document.getElementById('m-history').style.display = 'flex';
+  const { data: mine } = await sb.from('rentals').select('*').eq('user_id', currentUser.id).order('created_at', {ascending: false});
+  const statusLabel = { pending:'대기 중', approved:'승인 완료', rejected:'거절', returned:'반납 완료' };
+  const statusColor = { pending:'#F59E0B', approved:'#22C55E', rejected:'#EF4444', returned:'#8A8A86' };
+  if (!mine || mine.length === 0) {
+    list.innerHTML = `<p style="text-align:center;color:var(--muted);padding:24px 0;font-size:13px;">신청 내역이 없습니다</p>`;
+  } else {
+    list.innerHTML = mine.map(r => {
+      const items = Array.isArray(r.items) ? r.items : [];
+      return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:600;color:${statusColor[r.status]||'var(--muted)'};">${statusLabel[r.status]||r.status}</span>
+          <span style="font-size:11px;color:var(--muted-light);">${r.created_at ? r.created_at.slice(0,10) : ''}</span>
+        </div>
+        ${r.project_title ? `<p style="font-size:13px;font-weight:600;color:var(--heading);margin-bottom:6px;">${r.project_title}</p>` : ''}
+        <p style="font-size:12px;color:var(--muted);margin-bottom:4px;">${r.start_date||''} → ${r.end_date||''}</p>
+        <p style="font-size:12px;color:var(--body);">${items.slice(0,3).join(', ')}${items.length>3?` 외 ${items.length-3}건`:''}</p>
+      </div>`;
+    }).join('');
+  }
+}
+function closeHistory() {
+  document.getElementById('m-history').style.display = 'none';
+}
+
+/* ── 초기화 ── */
+renderEquip();
+setDateDefaults();
+(function init() {
+  const saved = sessionStorage.getItem('film_user');
+  if (saved) {
+    currentUser = JSON.parse(saved);
+    const navUser = document.getElementById('nav-user');
+    navUser.textContent = `${currentUser.name} 님 ▾`;
+    navUser.style.display = 'block';
+    document.getElementById('rf-name').value = currentUser.name;
+    document.getElementById('rf-sid').value  = currentUser.id;
+    showForm();
+  }
+})();
+</script>
+</body>
+</html>
