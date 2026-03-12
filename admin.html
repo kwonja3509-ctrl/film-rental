@@ -92,6 +92,11 @@
   <!-- ─── 관리자 앱 ─── -->
   <div id="app-screen">
 
+    <!-- 세션 타임아웃 경고 배너 -->
+    <div id="timeout-banner" style="display:none; background:#f87171; color:#fff; text-align:center; padding:10px; font-size:13px; font-weight:600; position:sticky; top:0; z-index:100;">
+      ⚠️ 5분 후 자동 로그아웃됩니다. <button type="button" onclick="resetSessionTimer()" style="margin-left:12px; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:#fff; padding:3px 12px; border-radius:4px; cursor:pointer; font-size:12px;">연장하기</button>
+    </div>
+
     <!-- 헤더 -->
     <header style="background: rgba(10,10,15,0.95); border-bottom: 1px solid #1e1e2a;" class="sticky top-0 z-40">
       <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
@@ -214,8 +219,12 @@
   </div>
 
   <script>
-    // ─── 비밀번호 (Phase 3 이후 환경변수로 관리 권장) ───
-    const ADMIN_PASSWORD = '0000';
+    // ─── 비밀번호 해시 (SHA-256, 원본 비밀번호는 코드에 없음) ───
+    const ADMIN_HASH = '9af15b336e6a9619928537df30b2e6a2376569fcf9d7e773eccede65606529a0';
+    async function hashPw(pw) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
 
     // ─── Supabase 초기화 ───
     const SUPA_URL = 'https://utbyvulogzgvkyixxebc.supabase.co';
@@ -240,14 +249,50 @@
       rentals = r.ok ? await r.json() : [];
     }
 
+    // ─── 세션 타임아웃 (30분 비활성 → 자동 로그아웃) ───
+    const SESSION_TIMEOUT = 30 * 60 * 1000;  // 30분
+    const WARN_BEFORE    =  5 * 60 * 1000;   // 5분 전 경고
+    let sessionTimer, warnTimer;
+
+    function resetSessionTimer() {
+      clearTimeout(sessionTimer);
+      clearTimeout(warnTimer);
+      document.getElementById('timeout-banner').style.display = 'none';
+      warnTimer = setTimeout(function() {
+        document.getElementById('timeout-banner').style.display = 'block';
+      }, SESSION_TIMEOUT - WARN_BEFORE);
+      sessionTimer = setTimeout(function() {
+        alert('30분 동안 활동이 없어 자동 로그아웃됩니다.');
+        logout();
+      }, SESSION_TIMEOUT);
+    }
+
+    function startSessionWatch() {
+      resetSessionTimer();
+      ['click', 'keydown', 'mousemove', 'scroll'].forEach(function(evt) {
+        document.addEventListener(evt, resetSessionTimer, { passive: true });
+      });
+    }
+
+    function stopSessionWatch() {
+      clearTimeout(sessionTimer);
+      clearTimeout(warnTimer);
+      document.getElementById('timeout-banner').style.display = 'none';
+      ['click', 'keydown', 'mousemove', 'scroll'].forEach(function(evt) {
+        document.removeEventListener(evt, resetSessionTimer);
+      });
+    }
+
     // ─── 로그인 ───
     async function login() {
       const pw = document.getElementById('pw-input').value;
-      if (pw === ADMIN_PASSWORD) {
+      const h = await hashPw(pw);
+      if (h === ADMIN_HASH) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-screen').classList.add('active');
         await loadRentals();
         renderAll();
+        startSessionWatch();
       } else {
         document.getElementById('pw-error').classList.remove('hidden');
         document.getElementById('pw-input').value = '';
@@ -255,6 +300,7 @@
     }
 
     function logout() {
+      stopSessionWatch();
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('app-screen').classList.remove('active');
     }
