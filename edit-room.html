@@ -306,6 +306,7 @@
           </div>
         </div>
         <div id="duration-display" style="display:none;background:var(--blue-light);border:1px solid rgba(55,132,244,0.2);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--blue);font-weight:500;"></div>
+        <div id="room-availability" style="display:none;margin-top:8px;border-radius:8px;padding:10px 13px;font-size:12px;"></div>
       </div>
 
       <div class="fsec">
@@ -502,13 +503,43 @@ function updateDuration() {
   }
 }
 
+/* ── 예약 현황 조회 ── */
+let bookedSlots = [];
+async function loadRoomAvailability() {
+  const roomEl = document.querySelector('[name="room"]:checked');
+  const date = document.getElementById('ef-start-date').value;
+  const el = document.getElementById('room-availability');
+  if (!roomEl || !date) { el.style.display = 'none'; return; }
+  const room = roomEl.value;
+  const today = new Date().toISOString().split('T')[0];
+  const { data } = await sb.from('rentals')
+    .select('user_name, start_date, start_time, end_date, end_time')
+    .eq('room', room).eq('status', 'approved')
+    .gte('end_date', today).order('start_date', { ascending: true });
+  bookedSlots = data || [];
+  const daySlots = bookedSlots.filter(r => r.start_date <= date && r.end_date >= date);
+  if (daySlots.length === 0) {
+    el.style.background = '#f0fdf4'; el.style.border = '1px solid #bbf7d0'; el.style.color = '#16a34a';
+    el.innerHTML = '✅ 선택한 날짜에 예약된 시간이 없습니다.';
+  } else {
+    const items = daySlots.map(r => {
+      const sameDay = r.start_date === r.end_date;
+      const range = sameDay ? `${r.start_time} ~ ${r.end_time}` : `${r.start_date} ${r.start_time} ~ ${r.end_date} ${r.end_time}`;
+      return `<li style="margin-top:4px;">⏰ <b>${range}</b> — ${r.user_name}님 대여중</li>`;
+    }).join('');
+    el.style.background = '#fff7ed'; el.style.border = '1px solid #fed7aa'; el.style.color = '#9a3412';
+    el.innerHTML = `⚠️ 이미 예약된 시간이 있습니다:<ul style="margin:6px 0 0 16px;padding:0;">${items}</ul>`;
+  }
+  el.style.display = 'block';
+}
+
 /* ── 날짜 기본값 ── */
 function setDateDefaults() {
   const today = new Date().toISOString().split('T')[0];
   const sd = document.getElementById('ef-start-date');
   const ed = document.getElementById('ef-end-date');
   sd.min = today; ed.min = today;
-  sd.addEventListener('change', () => { ed.min = sd.value; updateDuration(); });
+  sd.addEventListener('change', () => { ed.min = sd.value; updateDuration(); loadRoomAvailability(); });
   ed.addEventListener('change', updateDuration);
   document.getElementById('ef-start-time').addEventListener('change', updateDuration);
   document.getElementById('ef-end-time').addEventListener('change', updateDuration);
@@ -540,6 +571,7 @@ document.querySelectorAll('[name="room"]').forEach(radio => {
         lbl.style.background  = 'var(--bg)';
       }
     });
+    loadRoomAvailability();
   });
 });
 
@@ -557,6 +589,21 @@ async function handleSubmit(ev) {
   if (!st || !et) { errEl.textContent = '시작·종료 시간을 모두 선택해주세요.'; errEl.classList.add('on'); return; }
   const diff = (new Date(`${ed}T${et}`) - new Date(`${sd}T${st}`)) / (1000*60*60);
   if (diff <= 0) { errEl.textContent = '종료 시간은 시작 시간보다 늦어야 합니다.'; errEl.classList.add('on'); return; }
+
+  // 시간 중복 체크
+  const newStart = new Date(`${sd}T${st}`);
+  const newEnd   = new Date(`${ed}T${et}`);
+  for (const b of bookedSlots) {
+    const bStart = new Date(`${b.start_date}T${b.start_time}`);
+    const bEnd   = new Date(`${b.end_date}T${b.end_time}`);
+    if (newStart < bEnd && newEnd > bStart) {
+      const sameDay = b.start_date === b.end_date;
+      const range = sameDay ? `${b.start_time} ~ ${b.end_time}` : `${b.start_date} ${b.start_time} ~ ${b.end_date} ${b.end_time}`;
+      errEl.textContent = `⚠️ ${b.user_name}님이 ${range}까지 대여중입니다. 해당 시간 이후로 신청해주세요.`;
+      errEl.classList.add('on'); return;
+    }
+  }
+
   btn.disabled = true; btn.textContent = '처리 중...';
   await new Promise(r => setTimeout(r, 600));
 
