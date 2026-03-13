@@ -373,43 +373,47 @@
 
       list.innerHTML = filtered.map((r) => {
         const rid = r.id != null ? r.id : r._idx;
-        const isEquip = r.type === '기자재대여' || r.equipment;
         const isRoom = r.type === '편집실대관';
-        const subtitleParts = [];
-        if (r.projectTitle || r.project_title) subtitleParts.push(`📽️ ${r.projectTitle || r.project_title}`);
-        if (isRoom) subtitleParts.push(`🖥️ ${r.room === 'room1' ? '편집실 1호' : '편집실 2호'}`);
-        const dateStr = r.startDate ? `${r.startDate} → ${r.endDate}` :
-                        r.start_date ? `${formatDate(r.start_date)} → ${formatDate(r.end_date)}` : '';
         const eqList = r.equipment || r.items || [];
-        const eqStr = Array.isArray(eqList) && eqList.length
-          ? eqList.slice(0,2).join(', ') + (eqList.length > 2 ? ` 외 ${eqList.length-2}건` : '')
-          : '';
+        const sd = r.start_date || r.startDate || '';
+        const ed = r.end_date || r.endDate || '';
+        const st = r.start_time || '';
+        const et = r.end_time || '';
+        const dateTimeStr = sd ? (isRoom
+          ? `${formatDate(sd)} ${st} → ${formatDate(ed)} ${et}`
+          : `${formatDate(sd)} ~ ${formatDate(ed)}`) : '';
+        const roomName = isRoom ? (r.room || '').replace('편집실1','편집실 1호').replace('편집실2','편집실 2호') : '';
+        const proj = r.project_title || r.projectTitle || '';
+        const eqCount = Array.isArray(eqList) ? eqList.length : 0;
         return `
-        <div class="rounded-xl p-5 transition-all cursor-pointer"
+        <div class="rounded-xl p-4 transition-all cursor-pointer"
              style="background: #13131a; border: 1px solid #2a2a3a;"
              onclick="openDetail(${JSON.stringify(rid)})"
              onmouseover="this.style.borderColor='#3a3a4a'"
              onmouseout="this.style.borderColor='#2a2a3a'">
           <div class="flex items-start justify-between gap-3">
             <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-1 flex-wrap">
-                <span class="font-semibold" style="color: #e8e8f0;">${r.userName || r.name}</span>
-                <span style="color: #4a4a60; font-size: 12px;">${r.userId || r.student_id || ''}</span>
-                <span class="text-xs px-2 py-0.5 rounded" style="background: #1a1a30; color: #8888a0;">${isRoom ? '편집실' : '기자재'}</span>
+              <div class="flex items-center gap-2 mb-2 flex-wrap">
+                <span class="font-bold text-sm" style="color:#e8e8f0;">${r.user_name || r.userName || r.name || '-'}</span>
+                <span class="text-xs" style="color:#5a5a70;">${r.user_id || r.userId || ''}</span>
+                <span class="text-xs px-2 py-0.5 rounded-full" style="background:${isRoom?'rgba(139,92,246,0.15)':'rgba(232,184,75,0.15)'}; color:${isRoom?'#a78bfa':'#e8b84b'}; border:1px solid ${isRoom?'rgba(139,92,246,0.3)':'rgba(232,184,75,0.3)'};">${isRoom ? '🖥️ 편집실' : '📦 기자재'}</span>
                 ${statusBadge(r.status)}
               </div>
-              ${subtitleParts.length ? `<p class="text-sm mb-1" style="color: #8888a0;">${subtitleParts.join('  ')}</p>` : ''}
-              <p class="text-xs" style="color: #4a4a60;">
-                ${dateStr}${dateStr && eqStr ? ' · ' : ''}${eqStr}
-              </p>
+              <div class="text-xs space-y-1" style="color:#6a6a80;">
+                ${dateTimeStr ? `<div>📅 ${dateTimeStr}</div>` : ''}
+                ${isRoom && roomName ? `<div>🏠 ${roomName}</div>` : ''}
+                ${proj ? `<div>🎬 ${proj}</div>` : ''}
+                ${!isRoom && eqCount ? `<div>📷 기자재 ${eqCount}건${eqCount>0?' — '+eqList.slice(0,2).map(e=>typeof e==='object'?e.name:e).join(', ')+(eqCount>2?' 외 '+(eqCount-2)+'건':''):''}</div>` : ''}
+              </div>
             </div>
-            <div class="flex gap-2 flex-shrink-0">
+            <div class="flex flex-col gap-2 flex-shrink-0 items-end">
               ${r.status === 'pending' ? `
                 <button type="button" class="btn btn-approve text-xs px-3 py-1.5" data-rid="${rid}" onclick="event.stopPropagation(); changeStatus(this.getAttribute('data-rid'), 'approved')">승인</button>
                 <button type="button" class="btn btn-reject text-xs px-3 py-1.5" data-rid="${rid}" onclick="event.stopPropagation(); changeStatus(this.getAttribute('data-rid'), 'rejected')">거절</button>
               ` : r.status === 'approved' ? `
                 <button type="button" class="btn text-xs px-3 py-1.5" style="background:rgba(99,102,241,0.15);color:#a5b4fc;border:1px solid rgba(99,102,241,0.3);" data-rid="${rid}" onclick="event.stopPropagation(); changeStatus(this.getAttribute('data-rid'), 'returned')">반납</button>
               ` : ''}
+              <span class="text-xs" style="color:#3a3a4a;">${formatDateTime(r.created_at || r.createdAt)}</span>
             </div>
           </div>
         </div>`;
@@ -550,20 +554,28 @@
       selectedRentalId = rid;
       const isRoom = r.type === '편집실대관';
       const eqList = r.equipment || r.items || [];
+      const sd = r.start_date || r.startDate || '';
+      const ed = r.end_date || r.endDate || '';
+      const st = r.start_time || '';
+      const et = r.end_time || '';
+      const roomName = isRoom ? (r.room||'').replace('편집실1','편집실 1호').replace('편집실2','편집실 2호') : '';
+      const proj = r.project_title || r.projectTitle || '';
+
       const infoRows = [
-        ['이름', r.userName || r.name],
-        ['아이디', r.userId || r.student_id || '-'],
-        ['시작일', r.startDate || formatDate(r.start_date)],
-        isRoom ? ['종료일', r.endDate || formatDate(r.end_date)] : ['반납 예정', r.endDate || formatDate(r.end_date)],
+        ['신청자', r.user_name || r.userName || r.name || '-'],
+        ['아이디', r.user_id || r.userId || '-'],
+        ['시작', sd ? `${formatDate(sd)}${st ? ' ' + st : ''}` : '-'],
+        [isRoom ? '종료' : '반납 예정', ed ? `${formatDate(ed)}${et ? ' ' + et : ''}` : '-'],
       ];
-      if (isRoom) infoRows.push(['편집실', r.room === 'room1' ? '편집실 1호' : '편집실 2호']);
-      if (r.projectTitle || r.project_title) infoRows.push(['작품명', r.projectTitle || r.project_title]);
+      if (isRoom && roomName) infoRows.push(['편집실', roomName]);
+      if (proj) infoRows.push(['작품명', proj]);
+      if (r.headcount) infoRows.push(['사용 인원', r.headcount + '명']);
 
       document.getElementById('detail-content').innerHTML = `
         <div class="space-y-4">
           <div>
-            <p class="text-xs mb-3" style="color: #8888a0;">신청 정보</p>
-            <div class="grid grid-cols-2 gap-3">
+            <p class="text-xs mb-3 font-semibold" style="color:#8888a0; letter-spacing:0.05em;">신청 정보</p>
+            <div class="grid grid-cols-2 gap-2">
               ${infoRows.map(([k,v]) => `
                 <div class="rounded-lg p-3" style="background: #13131a;">
                   <p class="text-xs mb-1" style="color: #4a4a60;">${k}</p>
@@ -574,26 +586,28 @@
           </div>
           ${Array.isArray(eqList) && eqList.length ? `
           <div>
-            <p class="text-xs mb-3" style="color: #8888a0;">신청 기자재</p>
-            <div class="rounded-lg p-4 space-y-1.5" style="background: #13131a;">
-              ${eqList.map(eq => `
-                <div class="flex items-center gap-2">
-                  <div class="w-1 h-1 rounded-full flex-shrink-0" style="background: #e8b84b;"></div>
-                  <p class="text-sm" style="color: #e8e8f0;">${typeof eq === 'object' ? eq.name : eq}</p>
-                </div>
-              `).join('')}
+            <p class="text-xs mb-3 font-semibold" style="color:#8888a0; letter-spacing:0.05em;">신청 기자재 (총 ${eqList.length}건)</p>
+            <div class="rounded-lg p-4" style="background: #13131a;">
+              <div class="space-y-1.5">
+                ${eqList.map((eq,i) => `
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs flex-shrink-0" style="color:#4a4a60;">${i+1}.</span>
+                    <p class="text-sm" style="color: #e8e8f0;">${typeof eq === 'object' ? eq.name : eq}</p>
+                  </div>
+                `).join('')}
+              </div>
             </div>
           </div>` : ''}
           ${r.message ? `
           <div>
-            <p class="text-xs mb-3" style="color: #8888a0;">요청사항</p>
+            <p class="text-xs mb-3 font-semibold" style="color:#8888a0; letter-spacing:0.05em;">요청사항</p>
             <div class="rounded-lg p-4" style="background: #13131a;">
-              <p class="text-sm" style="color: #c8c8d8;">${r.message}</p>
+              <p class="text-sm" style="color: #c8c8d8; line-height:1.6;">${r.message}</p>
             </div>
           </div>` : ''}
-          <div class="flex items-center justify-between pt-2" style="border-top: 1px solid #2a2a3a;">
+          <div class="flex items-center justify-between pt-3" style="border-top: 1px solid #2a2a3a;">
             <div>${statusBadge(r.status)}</div>
-            <p class="text-xs" style="color: #4a4a60;">접수 ${formatDateTime(r.createdAt || r.created_at)}</p>
+            <p class="text-xs" style="color: #4a4a60;">신청 ${formatDateTime(r.createdAt || r.created_at)}</p>
           </div>
         </div>
       `;
