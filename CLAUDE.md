@@ -549,7 +549,7 @@ RESEND_API_KEY=re_xxxxxxxx...
 
 ---
 
-# Phase 4: 배포 (Vercel)
+# c: 배포 (Vercel)
 
 ## 왜 GitHub와 Vercel이 필요한가?
 

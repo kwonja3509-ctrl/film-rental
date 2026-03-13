@@ -180,6 +180,9 @@
     }
     .ec.selected .equip-check { display: flex; }
     .ec .equip-name { font-size: 13px; font-weight: 500; color: var(--heading); line-height: 1.4; }
+    .ec.rented { pointer-events: none; }
+    .ec.rented label { opacity: 0.5; cursor: not-allowed; border-color: #e0e0e0; background: #f5f5f5; }
+    .rented-badge { font-size: 10px; font-weight: 600; background: #ef4444; color: #fff; padding: 2px 7px; border-radius: 20px; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -680,6 +683,7 @@ const EQUIPMENT = {
 };
 
 let currentUser = null;
+let rentedItems = new Set();
 
 function showForm() {
   document.getElementById('login-gate').classList.remove('on');
@@ -837,12 +841,14 @@ function toggleRulesEq() {
 
 function buildCard(item, cat, subcat, visible) {
   const icon = subcat ? (SUBCAT_ICONS[subcat] || CAT_ICONS[cat]) : (CAT_ICONS[cat] || '📦');
+  const isRented = rentedItems.has(item.name);
   return `
-    <div class="ec" data-cat="${cat}" data-subcat="${subcat||''}" style="${visible?'':'display:none'}" onclick="toggleEquip(this)">
-      <input type="checkbox" id="rfe-${item.id}" name="equipment" value="${item.name}">
+    <div class="ec${isRented?' rented':''}" data-cat="${cat}" data-subcat="${subcat||''}" style="${visible?'':'display:none'}" ${isRented?'':' onclick="toggleEquip(this)"'}>
+      <input type="checkbox" id="rfe-${item.id}" name="equipment" value="${item.name}" ${isRented?'disabled':''}>
       <label for="rfe-${item.id}" onclick="event.preventDefault()">
         <div class="equip-icon">${icon}</div>
         <span class="equip-name">${item.name}</span>
+        ${isRented?'<span class="rented-badge">대여중</span>':''}
       </label>
       <div class="equip-check">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
@@ -1001,9 +1007,21 @@ function closeHistory() {
   document.getElementById('m-history').style.display = 'none';
 }
 
+/* ── 현재 대여중인 장비 로드 ── */
+async function loadRentedItems() {
+  const today = new Date().toISOString().split('T')[0];
+  const { data } = await sb.from('rentals')
+    .select('items, start_date, end_date')
+    .eq('status', 'approved')
+    .lte('start_date', today)
+    .gte('end_date', today);
+  rentedItems = new Set();
+  if (data) data.forEach(r => { if (Array.isArray(r.items)) r.items.forEach(n => rentedItems.add(n)); });
+}
+
 /* ── 초기화 ── */
-renderEquip();
 setDateDefaults();
+(async () => { await loadRentedItems(); renderEquip(); })();
 (function init() {
   const saved = sessionStorage.getItem('film_user');
   if (saved) {

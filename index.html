@@ -730,9 +730,11 @@ async function doLogin() {
   document.getElementById('li-pw').value = '';
   closeModal('m-login');
 
-  // 로그인 후 대여 폼 열기
-  openRentalModal(pendingEquipId);
-  pendingEquipId = null;
+  // 로그인 전 대여 버튼 눌렀을 때만 폼 열기
+  if (pendingEquipId !== null) {
+    openRentalModal(pendingEquipId);
+    pendingEquipId = null;
+  }
 }
 
 /* ── 로그아웃 ── */
