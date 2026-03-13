@@ -388,7 +388,7 @@
         return `
         <div class="rounded-xl p-4 transition-all cursor-pointer"
              style="background: #13131a; border: 1px solid #2a2a3a;"
-             onclick="openDetail(${JSON.stringify(rid)})"
+             data-rid="${rid}" onclick="openDetail(this.getAttribute('data-rid'))"
              onmouseover="this.style.borderColor='#3a3a4a'"
              onmouseout="this.style.borderColor='#2a2a3a'">
           <div class="flex items-start justify-between gap-3">
