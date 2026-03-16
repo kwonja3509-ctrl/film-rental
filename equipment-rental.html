@@ -523,7 +523,6 @@ const EQUIPMENT = {
       {id:'c4',  name:'Sony FX3 3번', img:'SONY-FX3-Interchangeable-Lens-Digital-Camera-Featured-Image-removebg-preview.png'},
       {id:'c5',  name:'Sony FX3 4번', img:'SONY-FX3-Interchangeable-Lens-Digital-Camera-Featured-Image-removebg-preview.png'},
       {id:'c6',  name:'Sony A7C 1번'},
-      {id:'c7',  name:'Sony A7C 2번'},
       {id:'c8',  name:'GoPro Hero 11 Black 1번'},
       {id:'c9',  name:'GoPro Hero 11 Black 2번'},
       {id:'c10', name:'DJI 드론'},
@@ -843,7 +842,7 @@ function buildCard(item, cat, subcat, visible) {
   const icon = subcat ? (SUBCAT_ICONS[subcat] || CAT_ICONS[cat]) : (CAT_ICONS[cat] || '📦');
   const isRented = rentedItems.has(item.name);
   const imgHtml = item.img
-    ? `<img src="./${item.img}" alt="${item.name}" style="width:100%;height:80px;object-fit:contain;margin-bottom:4px;">`
+    ? `<img src="./${item.img}" alt="${item.name}" style="width:60px;height:45px;object-fit:contain;margin-bottom:4px;">`
     : `<div class="equip-icon">${icon}</div>`;
   return `
     <div class="ec${isRented?' rented':''}" data-cat="${cat}" data-subcat="${subcat||''}" style="${visible?'':'display:none'}" ${isRented?'':' onclick="toggleEquip(this)"'}>
