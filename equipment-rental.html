@@ -842,7 +842,7 @@ function buildCard(item, cat, subcat, visible) {
   const icon = subcat ? (SUBCAT_ICONS[subcat] || CAT_ICONS[cat]) : (CAT_ICONS[cat] || '📦');
   const isRented = rentedItems.has(item.name);
   const imgHtml = item.img
-    ? `<img src="./${item.img}" alt="${item.name}" style="width:60px;height:45px;object-fit:contain;margin-bottom:4px;">`
+    ? `<img src="./${item.img}" alt="${item.name}" style="width:30px;height:20px;object-fit:contain;margin-bottom:4px;">`
     : `<div class="equip-icon">${icon}</div>`;
   return `
     <div class="ec${isRented?' rented':''}" data-cat="${cat}" data-subcat="${subcat||''}" style="${visible?'':'display:none'}" ${isRented?'':' onclick="toggleEquip(this)"'}>
