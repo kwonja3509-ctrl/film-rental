@@ -520,8 +520,8 @@ const EQUIPMENT = {
       {id:'c1',  name:'Sony FX6', img:'무제 폴더/sony_pxw_fx6_cinema_camera_body_1673526912_1592066-removebg-preview.png'},
       {id:'c2',  name:'Sony FX3 리그 세트 1번', img:'무제 폴더/FX3 리그세트.png'},
       {id:'c3',  name:'Sony FX3 리그 세트 2번', img:'무제 폴더/FX3 리그세트.png'},
-      {id:'c4',  name:'Sony FX3 3번', img:'무제 폴더/SONY-FX3-Interchangeable-Lens-Digital-Camera-Featured-Image-removebg-preview.png'},
-      {id:'c5',  name:'Sony FX3 4번', img:'무제 폴더/SONY-FX3-Interchangeable-Lens-Digital-Camera-Featured-Image-removebg-preview.png'},
+      {id:'c4',  name:'Sony FX3 3번', img:'무제 폴더/SONY-FX3-Interchangeable-Lens-Digital-Camera-Featured-Image-removebg-preview.png', imgScale:1.6},
+      {id:'c5',  name:'Sony FX3 4번', img:'무제 폴더/SONY-FX3-Interchangeable-Lens-Digital-Camera-Featured-Image-removebg-preview.png', imgScale:1.6},
       {id:'c6',  name:'Sony A7C 1번', img:'무제 폴더/a7c-removebg-preview.png'},
       {id:'c8',  name:'GoPro Hero 11 Black 1번', img:'무제 폴더/goPro_hero_11-removebg-preview.png'},
       {id:'c9',  name:'GoPro Hero 11 Black 2번', img:'무제 폴더/goPro_hero_11-removebg-preview.png'},
@@ -834,7 +834,7 @@ function buildCard(item, cat, subcat, visible) {
   const icon = subcat ? (SUBCAT_ICONS[subcat] || CAT_ICONS[cat]) : (CAT_ICONS[cat] || '📦');
   const isRented = rentedItems.has(item.name);
   const imgHtml = item.img
-    ? `<img src="./${item.img.split('/').map(p=>encodeURIComponent(p)).join('/')}" alt="${item.name}" style="width:46px;height:46px;object-fit:contain;border-radius:8px;">`
+    ? `<img src="./${item.img.split('/').map(p=>encodeURIComponent(p)).join('/')}" alt="${item.name}" style="width:46px;height:46px;object-fit:contain;border-radius:8px;${item.imgScale ? `transform:scale(${item.imgScale});` : ''}">`
     : `<div class="equip-icon">${icon}</div>`;
   return `
     <div class="ec${isRented?' rented':''}" data-cat="${cat}" data-subcat="${subcat||''}" style="${visible?'':'display:none'}" ${isRented?'':' onclick="toggleEquip(this)"'}>
