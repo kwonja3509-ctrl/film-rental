@@ -552,7 +552,7 @@ const EQUIPMENT = {
       {id:'t6',  name:'DJI 로닌 프로 2 짐벌 2번', img:'무제 폴더/DJI 로닌 프로 2.png'},
       {id:'t7',  name:'틸타 링그립', img:'무제 폴더/틸타 링그립.png'},
       {id:'t8',  name:'이지리그', img:'무제 폴더/이지리그.png'},
-      {id:'t9',  name:'숄더리그(핸들+패드 구성)', img:'무제 폴더/숄더리그(핸들+패드 구성).png'},
+      {id:'t9',  name:'숄더리그(핸들+패드 구성)', img:'무제 폴더/숄더리그핸들패드구성.png'},
       {id:'t10', name:'movmax 그립달리 pro kit', img:'무제 폴더/movmax 그립달리 pro kit.png'},
     ],
     부속품: [
@@ -834,7 +834,7 @@ function buildCard(item, cat, subcat, visible) {
   const icon = subcat ? (SUBCAT_ICONS[subcat] || CAT_ICONS[cat]) : (CAT_ICONS[cat] || '📦');
   const isRented = rentedItems.has(item.name);
   const imgHtml = item.img
-    ? `<img src="./${item.img}" alt="${item.name}" style="width:46px;height:46px;object-fit:contain;border-radius:8px;">`
+    ? `<img src="./${item.img.split('/').map(p=>encodeURIComponent(p)).join('/')}" alt="${item.name}" style="width:46px;height:46px;object-fit:contain;border-radius:8px;">`
     : `<div class="equip-icon">${icon}</div>`;
   return `
     <div class="ec${isRented?' rented':''}" data-cat="${cat}" data-subcat="${subcat||''}" style="${visible?'':'display:none'}" ${isRented?'':' onclick="toggleEquip(this)"'}>
