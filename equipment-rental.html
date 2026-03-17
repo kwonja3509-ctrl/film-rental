@@ -939,6 +939,7 @@ async function handleRental(ev) {
   if (form.start_date.value > form.end_date.value) { errEl.textContent='반납일이 대여 시작일보다 빠를 수 없습니다.'; errEl.classList.add('on'); return; }
   const rentalDays = (new Date(form.end_date.value) - new Date(form.start_date.value)) / (1000 * 60 * 60 * 24);
   if (rentalDays >= 3) { errEl.textContent='3일 이상 대여는 불가합니다. 기자재 부장에게 개별 연락해주세요.'; errEl.classList.add('on'); return; }
+  if (!form.message.value.trim()) { errEl.textContent='사용자 전원의 이름을 기재해주세요.'; errEl.classList.add('on'); return; }
   if (!document.getElementById('rules-eq-agree').checked) { errEl.textContent='기자재 대여 규정에 동의해주세요.'; errEl.classList.add('on'); return; }
   btn.disabled=true; btn.textContent='처리 중...';
   await new Promise(r=>setTimeout(r,600));
