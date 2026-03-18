@@ -388,16 +388,12 @@
           <div>
             <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">대여 시작일 <span style="color:var(--blue);">*</span></label>
             <input type="date" name="start_date" id="rf-start" class="inp" required>
-            <select name="start_time" id="rf-start-time" class="inp" required style="margin-top:6px;">
-              ${Array.from({length:24},(_,i)=>`<option value="${String(i).padStart(2,'0')}:00">${String(i).padStart(2,'0')}:00</option>`).join('')}
-            </select>
+            <select name="start_time" id="rf-start-time" class="inp" required style="margin-top:6px;"></select>
           </div>
           <div>
             <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">반납 예정일 <span style="color:var(--blue);">*</span></label>
             <input type="date" name="end_date" id="rf-end" class="inp" required>
-            <select name="end_time" id="rf-end-time" class="inp" required style="margin-top:6px;">
-              ${Array.from({length:24},(_,i)=>`<option value="${String(i).padStart(2,'0')}:00">${String(i).padStart(2,'0')}:00</option>`).join('')}
-            </select>
+            <select name="end_time" id="rf-end-time" class="inp" required style="margin-top:6px;"></select>
           </div>
         </div>
         <div id="date-duration-warn" style="display:none;margin-top:10px;background:#FFF7ED;border:1.5px solid #F59E0B;border-radius:var(--r);padding:10px 14px;font-size:12px;color:#92400E;line-height:1.6;">
@@ -978,6 +974,17 @@ function setDateDefaults() {
   const e = document.getElementById('rf-end');
   s.min = today; e.min = today;
 
+  // 시간 옵션 생성 (00:00 ~ 23:00)
+  const timeOpts = Array.from({length:24}, (_, i) => {
+    const h = String(i).padStart(2,'0');
+    return `<option value="${h}:00">${h}:00</option>`;
+  }).join('');
+  document.getElementById('rf-start-time').innerHTML = timeOpts;
+  document.getElementById('rf-end-time').innerHTML = timeOpts;
+  // 기본값: 시작 09:00, 반납 18:00
+  document.getElementById('rf-start-time').value = '09:00';
+  document.getElementById('rf-end-time').value = '18:00';
+
   function checkDuration() {
     const warn = document.getElementById('date-duration-warn');
     if (!s.value || !e.value) { if (warn) warn.style.display = 'none'; return; }
@@ -985,8 +992,11 @@ function setDateDefaults() {
     if (warn) warn.style.display = days >= 3 ? 'block' : 'none';
   }
 
-  s.addEventListener('change', () => { e.min = s.value; checkDuration(); });
-  e.addEventListener('change', checkDuration);
+  function updateAvailability() {
+    if (s.value && e.value) recalcAvailability(s.value, e.value);
+  }
+  s.addEventListener('change', () => { e.min = s.value; checkDuration(); updateAvailability(); });
+  e.addEventListener('change', () => { checkDuration(); updateAvailability(); });
 }
 
 /* ── 폼 제출 ── */
@@ -1064,34 +1074,45 @@ function closeHistory() {
   document.getElementById('m-history').style.display = 'none';
 }
 
-/* ── 현재 대여중인 장비 로드 ── */
+/* ── 승인된 대여 전체 로드 ── */
+let allApprovedRentals = [];
+
 async function loadRentedItems() {
-  const today = new Date().toISOString().split('T')[0];
   const { data } = await sb.from('rentals')
     .select('items, start_date, end_date')
-    .eq('status', 'approved')
-    .lte('start_date', today)
-    .gte('end_date', today);
+    .eq('status', 'approved');
+  allApprovedRentals = data || [];
+  const today = new Date().toISOString().split('T')[0];
+  recalcAvailability(today, today);
+}
+
+function recalcAvailability(startDate, endDate) {
   rentedItems = new Set();
   rentedQtys = {};
-  if (data) data.forEach(r => {
-    if (!Array.isArray(r.items)) return;
-    r.items.forEach(n => {
-      const match = n.match(/^(.+) x(\d+)$/);
-      if (match) {
-        const baseName = match[1];
-        const qty = parseInt(match[2]);
-        rentedQtys[baseName] = (rentedQtys[baseName] || 0) + qty;
-      } else {
-        rentedItems.add(n);
-      }
-    });
+  const s = startDate.slice(0, 10);
+  const e = endDate.slice(0, 10);
+  allApprovedRentals.forEach(r => {
+    const rs = (r.start_date || '').slice(0, 10);
+    const re = (r.end_date || '').slice(0, 10);
+    // 날짜 범위가 겹치는 경우만 (rs <= e && re >= s)
+    if (rs <= e && re >= s) {
+      if (!Array.isArray(r.items)) return;
+      r.items.forEach(n => {
+        const match = n.match(/^(.+) x(\d+)$/);
+        if (match) {
+          rentedQtys[match[1]] = (rentedQtys[match[1]] || 0) + parseInt(match[2]);
+        } else {
+          rentedItems.add(n);
+        }
+      });
+    }
   });
+  renderEquip();
 }
 
 /* ── 초기화 ── */
 setDateDefaults();
-(async () => { await loadRentedItems(); renderEquip(); })();
+(async () => { await loadRentedItems(); })();
 (function init() {
   const saved = sessionStorage.getItem('film_user');
   if (saved) {
