@@ -635,7 +635,8 @@ const EQUIPMENT = {
     스탠드: [
       {id:'st1', name:'베이비 콤보 1번', freeRent:true, img:'무제 폴더/베이비 스텐드.png'},
       {id:'st2', name:'베이비 콤보 2번', freeRent:true, img:'무제 폴더/베이비 스텐드.png'},
-      {id:'st3', name:'C스탠드&A스탠드 (총괄에게 개별 연락 후 수령)', freeRent:true, img:'무제 폴더/C스텐드.png'},
+      {id:'st3', name:'C스탠드 (총괄에게 개별 연락 후 수령)', freeRent:true, img:'무제 폴더/C스텐드.png', maxQty:12},
+      {id:'st4', name:'A스탠드 (총괄에게 개별 연락 후 수령)', freeRent:true, img:'무제 폴더/C스텐드.png', maxQty:9},
     ],
   },
   오디오: [
@@ -816,11 +817,43 @@ function updateSelectedSummary() {
   ).join('');
 }
 
+function changeQty(itemId, delta) {
+  // maxQty 찾기
+  let maxQty = 99;
+  for (const [, data] of Object.entries(EQUIPMENT)) {
+    const items = Array.isArray(data) ? data : Object.values(data).flat();
+    const found = items.find(i => i.id === itemId);
+    if (found) { maxQty = found.maxQty || 99; break; }
+  }
+  const display = document.getElementById(`qty-display-${itemId}`);
+  const cb = document.getElementById(`rfe-${itemId}`);
+  if (!display || !cb) return;
+  let qty = parseInt(display.textContent) || 0;
+  qty = Math.max(0, Math.min(maxQty, qty + delta));
+  display.textContent = qty;
+  const card = cb.closest('.ec');
+  if (qty > 0) {
+    cb.value = cb.value.replace(/ x\d+$/, '') + ` x${qty}`;
+    cb.removeAttribute('disabled');
+    cb.checked = true;
+    card.classList.add('selected');
+  } else {
+    cb.setAttribute('disabled', '');
+    cb.checked = false;
+    card.classList.remove('selected');
+  }
+  updateSelectedSummary();
+}
+
 function deselectEquip(cbId) {
   const cb = document.getElementById(cbId);
   if (!cb) return;
   cb.checked = false;
   cb.closest('.ec').classList.remove('selected');
+  // 수량 아이템이면 수량 표시도 0으로 초기화
+  const itemId = cbId.replace('rfe-', '');
+  const display = document.getElementById(`qty-display-${itemId}`);
+  if (display) { display.textContent = '0'; cb.setAttribute('disabled', ''); }
   updateSelectedSummary();
 }
 
@@ -840,6 +873,26 @@ function buildCard(item, cat, subcat, visible) {
   const imgHtml = item.img
     ? `<img src="./${item.img.split('/').map(p=>encodeURIComponent(p)).join('/')}" alt="${item.name}" style="width:46px;height:46px;object-fit:contain;border-radius:8px;${item.imgScale ? `transform:scale(${item.imgScale});` : ''}">`
     : `<div class="equip-icon">${icon}</div>`;
+
+  if (item.maxQty) {
+    return `
+    <div class="ec" data-cat="${cat}" data-subcat="${subcat||''}" data-qty-id="${item.id}" style="${visible?'':'display:none'}">
+      <input type="checkbox" id="rfe-${item.id}" name="equipment" value="${item.name} x1" disabled style="display:none">
+      <label onclick="event.preventDefault()" style="pointer-events:none;">
+        ${imgHtml}
+        <span class="equip-name">${item.name}</span>
+      </label>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px;justify-content:center;">
+        <button type="button" onclick="event.stopPropagation();changeQty('${item.id}',-1)"
+          style="width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--body);">−</button>
+        <span id="qty-display-${item.id}" style="font-size:13px;font-weight:600;min-width:20px;text-align:center;color:var(--heading);">0</span>
+        <button type="button" onclick="event.stopPropagation();changeQty('${item.id}',1)"
+          style="width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--body);">+</button>
+        <span style="font-size:10px;color:var(--muted);margin-left:2px;">최대 ${item.maxQty}개</span>
+      </div>
+    </div>`;
+  }
+
   return `
     <div class="ec${isRented?' rented':''}" data-cat="${cat}" data-subcat="${subcat||''}" style="${visible?'':'display:none'}" ${isRented?'':' onclick="toggleEquip(this)"'}>
       <input type="checkbox" id="rfe-${item.id}" name="equipment" value="${item.name}" ${isRented?'disabled':''}>
