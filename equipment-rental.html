@@ -641,8 +641,8 @@ const EQUIPMENT = {
     스탠드: [
       {id:'st1', name:'베이비 콤보 1번', freeRent:true, img:'무제 폴더/베이비 스텐드.png'},
       {id:'st2', name:'베이비 콤보 2번', freeRent:true, img:'무제 폴더/베이비 스텐드.png'},
-      {id:'st3', name:'C스탠드 (총괄에게 개별 연락 후 수령)', freeRent:true, img:'무제 폴더/C스텐드.png', maxQty:12},
-      {id:'st4', name:'A스탠드 (총괄에게 개별 연락 후 수령)', freeRent:true, img:'무제 폴더/C스텐드.png', maxQty:9},
+      {id:'st3', name:'C스탠드', freeRent:true, img:'무제 폴더/C스텐드.png', maxQty:12},
+      {id:'st4', name:'A스탠드', freeRent:true, img:'무제 폴더/a스텐드.png', maxQty:9},
     ],
   },
   오디오: [
@@ -832,15 +832,18 @@ function changeQty(itemId, delta, availQty) {
   qty = Math.max(0, Math.min(availQty ?? 99, qty + delta));
   display.textContent = qty;
   const card = cb.closest('.ec');
+  const qtyCardDiv = document.getElementById(`qty-card-${itemId}`);
   if (qty > 0) {
     cb.value = cb.value.replace(/ x\d+$/, '') + ` x${qty}`;
     cb.removeAttribute('disabled');
     cb.checked = true;
     card.classList.add('selected');
+    if (qtyCardDiv) { qtyCardDiv.style.borderColor = 'var(--blue)'; qtyCardDiv.style.background = 'var(--blue-light)'; }
   } else {
     cb.setAttribute('disabled', '');
     cb.checked = false;
     card.classList.remove('selected');
+    if (qtyCardDiv) { qtyCardDiv.style.borderColor = 'var(--border)'; qtyCardDiv.style.background = 'var(--surface)'; }
   }
   updateSelectedSummary();
 }
@@ -881,20 +884,22 @@ function buildCard(item, cat, subcat, visible) {
     return `
     <div class="ec${isSoldOut?' rented':''}" data-cat="${cat}" data-subcat="${subcat||''}" data-qty-id="${item.id}" style="${visible?'':'display:none'}">
       <input type="checkbox" id="rfe-${item.id}" name="equipment" value="${item.name} x1" disabled style="display:none">
-      <label onclick="event.preventDefault()" style="pointer-events:none;">
-        ${imgHtml}
-        <span class="equip-name">${item.name}</span>
-        ${isSoldOut ? '<span class="rented-badge">대여중</span>' : ''}
-      </label>
-      ${isSoldOut ? '' : `
-      <div style="display:flex;align-items:center;gap:6px;margin-top:6px;justify-content:center;">
-        <button type="button" onclick="event.stopPropagation();changeQty('${item.id}',-1,${availQty})"
-          style="width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--body);">−</button>
-        <span id="qty-display-${item.id}" style="font-size:13px;font-weight:600;min-width:20px;text-align:center;color:var(--heading);">0</span>
-        <button type="button" onclick="event.stopPropagation();changeQty('${item.id}',1,${availQty})"
-          style="width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--body);">+</button>
-        <span style="font-size:10px;color:var(--muted);margin-left:2px;">최대 ${availQty}개</span>
-      </div>`}
+      <div style="display:flex;flex-direction:column;border:1.5px solid ${isSoldOut?'#e0e0e0':'var(--border)'};border-radius:var(--r);background:${isSoldOut?'#f5f5f5':'var(--surface)'};padding:10px 12px;gap:8px;" id="qty-card-${item.id}">
+        <div style="display:flex;align-items:center;gap:10px;${isSoldOut?'opacity:0.5':''}">
+          ${imgHtml}
+          <span class="equip-name">${item.name}</span>
+          ${isSoldOut ? '<span class="rented-badge">대여중</span>' : ''}
+        </div>
+        ${isSoldOut ? '' : `
+        <div style="display:flex;align-items:center;gap:6px;justify-content:center;">
+          <button type="button" onclick="event.stopPropagation();changeQty('${item.id}',-1,${availQty})"
+            style="width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--body);">−</button>
+          <span id="qty-display-${item.id}" style="font-size:13px;font-weight:600;min-width:20px;text-align:center;color:var(--heading);">0</span>
+          <button type="button" onclick="event.stopPropagation();changeQty('${item.id}',1,${availQty})"
+            style="width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--body);">+</button>
+          <span style="font-size:10px;color:var(--muted);margin-left:2px;">최대 ${availQty}개</span>
+        </div>`}
+      </div>
     </div>`;
   }
 
