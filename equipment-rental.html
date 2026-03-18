@@ -680,6 +680,7 @@ const EQUIPMENT = {
 
 let currentUser = null;
 let rentedItems = new Set();
+let rentedQtys = {}; // 수량 기반 아이템 대여 집계
 
 function showForm() {
   document.getElementById('login-gate').classList.remove('on');
@@ -817,19 +818,12 @@ function updateSelectedSummary() {
   ).join('');
 }
 
-function changeQty(itemId, delta) {
-  // maxQty 찾기
-  let maxQty = 99;
-  for (const [, data] of Object.entries(EQUIPMENT)) {
-    const items = Array.isArray(data) ? data : Object.values(data).flat();
-    const found = items.find(i => i.id === itemId);
-    if (found) { maxQty = found.maxQty || 99; break; }
-  }
+function changeQty(itemId, delta, availQty) {
   const display = document.getElementById(`qty-display-${itemId}`);
   const cb = document.getElementById(`rfe-${itemId}`);
   if (!display || !cb) return;
   let qty = parseInt(display.textContent) || 0;
-  qty = Math.max(0, Math.min(maxQty, qty + delta));
+  qty = Math.max(0, Math.min(availQty ?? 99, qty + delta));
   display.textContent = qty;
   const card = cb.closest('.ec');
   if (qty > 0) {
@@ -875,21 +869,26 @@ function buildCard(item, cat, subcat, visible) {
     : `<div class="equip-icon">${icon}</div>`;
 
   if (item.maxQty) {
+    const usedQty = rentedQtys[item.name] || 0;
+    const availQty = item.maxQty - usedQty;
+    const isSoldOut = availQty <= 0;
     return `
-    <div class="ec" data-cat="${cat}" data-subcat="${subcat||''}" data-qty-id="${item.id}" style="${visible?'':'display:none'}">
+    <div class="ec${isSoldOut?' rented':''}" data-cat="${cat}" data-subcat="${subcat||''}" data-qty-id="${item.id}" style="${visible?'':'display:none'}">
       <input type="checkbox" id="rfe-${item.id}" name="equipment" value="${item.name} x1" disabled style="display:none">
       <label onclick="event.preventDefault()" style="pointer-events:none;">
         ${imgHtml}
         <span class="equip-name">${item.name}</span>
+        ${isSoldOut ? '<span class="rented-badge">대여중</span>' : ''}
       </label>
+      ${isSoldOut ? '' : `
       <div style="display:flex;align-items:center;gap:6px;margin-top:6px;justify-content:center;">
-        <button type="button" onclick="event.stopPropagation();changeQty('${item.id}',-1)"
+        <button type="button" onclick="event.stopPropagation();changeQty('${item.id}',-1,${availQty})"
           style="width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--body);">−</button>
         <span id="qty-display-${item.id}" style="font-size:13px;font-weight:600;min-width:20px;text-align:center;color:var(--heading);">0</span>
-        <button type="button" onclick="event.stopPropagation();changeQty('${item.id}',1)"
+        <button type="button" onclick="event.stopPropagation();changeQty('${item.id}',1,${availQty})"
           style="width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--body);">+</button>
-        <span style="font-size:10px;color:var(--muted);margin-left:2px;">최대 ${item.maxQty}개</span>
-      </div>
+        <span style="font-size:10px;color:var(--muted);margin-left:2px;">최대 ${availQty}개</span>
+      </div>`}
     </div>`;
   }
 
@@ -1068,7 +1067,20 @@ async function loadRentedItems() {
     .lte('start_date', today)
     .gte('end_date', today);
   rentedItems = new Set();
-  if (data) data.forEach(r => { if (Array.isArray(r.items)) r.items.forEach(n => rentedItems.add(n)); });
+  rentedQtys = {};
+  if (data) data.forEach(r => {
+    if (!Array.isArray(r.items)) return;
+    r.items.forEach(n => {
+      const match = n.match(/^(.+) x(\d+)$/);
+      if (match) {
+        const baseName = match[1];
+        const qty = parseInt(match[2]);
+        rentedQtys[baseName] = (rentedQtys[baseName] || 0) + qty;
+      } else {
+        rentedItems.add(n);
+      }
+    });
+  });
 }
 
 /* ── 초기화 ── */
