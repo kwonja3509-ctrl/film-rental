@@ -386,14 +386,12 @@
         <p class="flabel">02 &nbsp; 대여 일정</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div>
-            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">대여 시작일 <span style="color:var(--blue);">*</span></label>
-            <input type="date" name="start_date" id="rf-start" class="inp" required>
-            <select name="start_time" id="rf-start-time" class="inp" required style="margin-top:6px;"></select>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">대여 시작 <span style="color:var(--blue);">*</span></label>
+            <input type="datetime-local" name="start_date" id="rf-start" class="inp" step="3600" required>
           </div>
           <div>
-            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">반납 예정일 <span style="color:var(--blue);">*</span></label>
-            <input type="date" name="end_date" id="rf-end" class="inp" required>
-            <select name="end_time" id="rf-end-time" class="inp" required style="margin-top:6px;"></select>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">반납 예정 <span style="color:var(--blue);">*</span></label>
+            <input type="datetime-local" name="end_date" id="rf-end" class="inp" step="3600" required>
           </div>
         </div>
         <div id="date-duration-warn" style="display:none;margin-top:10px;background:#FFF7ED;border:1.5px solid #F59E0B;border-radius:var(--r);padding:10px 14px;font-size:12px;color:#92400E;line-height:1.6;">
@@ -969,21 +967,16 @@ function switchSubCat(subcat) {
 
 /* ── 날짜 기본값 ── */
 function setDateDefaults() {
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const todayMin = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T00:00`;
   const s = document.getElementById('rf-start');
   const e = document.getElementById('rf-end');
-  s.min = today; e.min = today;
-
-  // 시간 옵션 생성 (00:00 ~ 23:00)
-  const timeOpts = Array.from({length:24}, (_, i) => {
-    const h = String(i).padStart(2,'0');
-    return `<option value="${h}:00">${h}:00</option>`;
-  }).join('');
-  document.getElementById('rf-start-time').innerHTML = timeOpts;
-  document.getElementById('rf-end-time').innerHTML = timeOpts;
-  // 기본값: 시작 09:00, 반납 18:00
-  document.getElementById('rf-start-time').value = '09:00';
-  document.getElementById('rf-end-time').value = '18:00';
+  s.min = todayMin; e.min = todayMin;
+  // 기본값: 오늘 09:00 ~ 오늘 18:00
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  s.value = `${todayStr}T09:00`;
+  e.value = `${todayStr}T18:00`;
 
   function checkDuration() {
     const warn = document.getElementById('date-duration-warn');
@@ -993,7 +986,7 @@ function setDateDefaults() {
   }
 
   function updateAvailability() {
-    if (s.value && e.value) recalcAvailability(s.value, e.value);
+    if (s.value && e.value) recalcAvailability(s.value.slice(0,10), e.value.slice(0,10));
   }
   s.addEventListener('change', () => { e.min = s.value; checkDuration(); updateAvailability(); });
   e.addEventListener('change', () => { checkDuration(); updateAvailability(); });
@@ -1022,8 +1015,8 @@ async function handleRental(ev) {
       user_name: currentUser.name,
       type: '장비대여',
       items: checked.map(c => c.value),
-      start_date: `${form.start_date.value} ${form.start_time.value}`,
-      end_date: `${form.end_date.value} ${form.end_time.value}`,
+      start_date: form.start_date.value.replace('T', ' '),
+      end_date: form.end_date.value.replace('T', ' '),
       project_title: form.project_title.value || '',
       message: form.message.value || '',
       status: 'pending'
