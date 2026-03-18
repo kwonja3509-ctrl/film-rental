@@ -401,7 +401,8 @@
       </div>
       <div class="fsec">
         <p class="flabel">03 &nbsp; 기자재 선택</p>
-        <p style="font-size:11px;color:var(--muted-light);margin-bottom:12px;">여러 개 선택 가능합니다</p>
+        <p style="font-size:11px;color:var(--muted-light);margin-bottom:6px;">여러 개 선택 가능합니다</p>
+        <p style="font-size:11px;color:var(--muted-light);margin-bottom:12px;">기자재 총괄 &nbsp;|&nbsp; <a href="tel:010-3717-8897" style="color:var(--muted-light);text-decoration:none;">010-3717-8897</a></p>
         <div id="rf-cat-tabs" class="cat-tabs"></div>
         <div id="rf-sub-tabs" class="sub-tabs" style="display:none;"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="rf-equip"></div>
@@ -626,13 +627,13 @@ const EQUIPMENT = {
       {id:'li27', name:'Skypanel S60 3번', img:'무제 폴더/Skypanel S60.png'},
     ],
     고보: [
-      {id:'go1', name:'고보&디퓨저 (총괄에게 개별 연락 후 수령)'},
-      {id:'go2', name:'Lee 필터 (총괄에게 개별 연락 후 수령)'},
+      {id:'go1', name:'고보&디퓨저 (총괄에게 개별 연락 후 수령)', freeRent:true},
+      {id:'go2', name:'Lee 필터 (총괄에게 개별 연락 후 수령)', freeRent:true},
     ],
     스탠드: [
-      {id:'st1', name:'베이비 콤보 1번'},
-      {id:'st2', name:'베이비 콤보 2번'},
-      {id:'st3', name:'C스탠드&A스탠드 (총괄에게 개별 연락 후 수령)'},
+      {id:'st1', name:'베이비 콤보 1번', freeRent:true},
+      {id:'st2', name:'베이비 콤보 2번', freeRent:true},
+      {id:'st3', name:'C스탠드&A스탠드 (총괄에게 개별 연락 후 수령)', freeRent:true},
     ],
   },
   오디오: [
@@ -666,10 +667,10 @@ const EQUIPMENT = {
       {id:'bg10', name:'카메라 가방 (백팩형) 3번', img:'무제 폴더/카메라가방백팩형.png'},
     ],
     라인: [
-      {id:'ln1', name:'SDI·HDMI 라인 (총괄에게 개별 연락 후 수령)'},
+      {id:'ln1', name:'SDI·HDMI 라인 (총괄에게 개별 연락 후 수령)', freeRent:true},
     ],
     배터리: [
-      {id:'bt1', name:'배터리·충전기 (총괄에게 개별 연락 후 수령)'},
+      {id:'bt1', name:'배터리·충전기 (총괄에게 개별 연락 후 수령)', freeRent:true},
     ],
   },
 };
@@ -833,7 +834,7 @@ function toggleRulesEq() {
 
 function buildCard(item, cat, subcat, visible) {
   const icon = subcat ? (SUBCAT_ICONS[subcat] || CAT_ICONS[cat]) : (CAT_ICONS[cat] || '📦');
-  const isRented = rentedItems.has(item.name);
+  const isRented = !item.freeRent && rentedItems.has(item.name);
   const imgHtml = item.img
     ? `<img src="./${item.img.split('/').map(p=>encodeURIComponent(p)).join('/')}" alt="${item.name}" style="width:46px;height:46px;object-fit:contain;border-radius:8px;${item.imgScale ? `transform:scale(${item.imgScale});` : ''}">`
     : `<div class="equip-icon">${icon}</div>`;
