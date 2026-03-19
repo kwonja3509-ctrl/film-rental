@@ -681,6 +681,9 @@ const EQUIPMENT = {
     배터리: [
       {id:'bt1', name:'배터리·충전기 (총괄에게 개별 연락 후 수령)', freeRent:true, img:'무제 폴더/eb69f4fc4098a6dec0c6759a5c2fdb26-removebg-preview.png'},
     ],
+    특수장치: [
+      {id:'sm1', name:'스모그 머신', img:'무제 폴더/포기기.jpg'},
+    ],
   },
 };
 
@@ -791,7 +794,7 @@ function doFindPw() {
 let currentCat = '카메라';
 let currentSubCat = '바디';
 const CAT_ICONS    = { 카메라:'📷', 조명:'💡', 오디오:'🎤', 악세서리:'🎒' };
-const SUBCAT_ICONS = { 바디:'📷', 렌즈:'🔭', '삼각대&짐벌':'🎯', 부속품:'🔧', 모니터:'🖥️', 조명:'💡', 고보:'🪟', 스탠드:'🏗', '가방/카트':'🎒', 라인:'🔌', 배터리:'🔋', SD:'💾' };
+const SUBCAT_ICONS = { 바디:'📷', 렌즈:'🔭', '삼각대&짐벌':'🎯', 부속품:'🔧', 모니터:'🖥️', 조명:'💡', 고보:'🪟', 스탠드:'🏗', '가방/카트':'🎒', 라인:'🔌', 배터리:'🔋', SD:'💾', 특수장치:'💨' };
 
 function isNested(cat) { return !Array.isArray(EQUIPMENT[cat]); }
 
