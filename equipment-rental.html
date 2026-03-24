@@ -267,6 +267,14 @@
             <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">비밀번호 확인 <span style="color:var(--blue);">*</span></label>
             <input type="password" id="su-pw2" class="inp" placeholder="비밀번호 재입력">
           </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">이메일 <span style="color:var(--blue);">*</span></label>
+            <input type="email" id="su-email" class="inp" placeholder="example@email.com">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">전화번호 <span style="color:var(--blue);">*</span></label>
+            <input type="tel" id="su-phone" class="inp" placeholder="010-0000-0000">
+          </div>
         </div>
         <p class="err" id="su-err"></p>
         <p class="suc" id="su-ok">가입 완료! 로그인해주세요.</p>
@@ -741,18 +749,20 @@ async function doLogin() {
 
 /* ── 회원가입 ── */
 async function doSignup() {
-  const name = document.getElementById('su-name').value.trim();
-  const id   = document.getElementById('su-id').value.trim();
-  const pw   = document.getElementById('su-pw').value;
-  const pw2  = document.getElementById('su-pw2').value;
+  const name  = document.getElementById('su-name').value.trim();
+  const id    = document.getElementById('su-id').value.trim();
+  const pw    = document.getElementById('su-pw').value;
+  const pw2   = document.getElementById('su-pw2').value;
+  const email = document.getElementById('su-email').value.trim();
+  const phone = document.getElementById('su-phone').value.trim();
   const err  = document.getElementById('su-err');
   const ok   = document.getElementById('su-ok');
   err.classList.remove('on'); ok.classList.remove('on');
-  if (!name||!id||!pw) { err.textContent='모든 항목을 입력해주세요.'; err.classList.add('on'); return; }
+  if (!name||!id||!pw||!email||!phone) { err.textContent='모든 항목을 입력해주세요.'; err.classList.add('on'); return; }
   if (pw.length<4)      { err.textContent='비밀번호는 4자리 이상이어야 합니다.'; err.classList.add('on'); return; }
   if (pw!==pw2)          { err.textContent='비밀번호가 일치하지 않습니다.'; err.classList.add('on'); return; }
   if (BASE_USERS.find(u=>u.id===id)) { err.textContent='이미 등록된 계정입니다.'; err.classList.add('on'); return; }
-  const { error } = await sb.from('film_users').insert({ id, name, password: pw, approved: false });
+  const { error } = await sb.from('film_users').insert({ id, name, password: pw, email, phone, approved: false });
   if (error) {
     if (error.code === '23505') { err.textContent='이미 등록된 아이디입니다.'; }
     else { err.textContent='오류가 발생했습니다. 다시 시도해주세요.'; }
@@ -760,7 +770,7 @@ async function doSignup() {
   }
   ok.textContent = '신청 완료! 관리자 승인 후 로그인이 가능합니다.';
   ok.classList.add('on');
-  ['su-name','su-id','su-pw','su-pw2'].forEach(i=>document.getElementById(i).value='');
+  ['su-name','su-id','su-pw','su-pw2','su-email','su-phone'].forEach(i=>document.getElementById(i).value='');
   setTimeout(()=>{ ok.classList.remove('on'); }, 4000);
 }
 
