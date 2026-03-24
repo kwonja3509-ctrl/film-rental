@@ -564,6 +564,8 @@
       const infoRows = [
         ['신청자', r.user_name || r.userName || r.name || '-'],
         ['아이디', r.user_id || r.userId || '-'],
+        ['전화번호', r.phone || '-'],
+        ['이메일', r.email || '-'],
         ['시작', sd ? `${formatDate(sd)}${st ? ' ' + st : ''}` : '-'],
         [isRoom ? '종료' : '반납 예정', ed ? `${formatDate(ed)}${et ? ' ' + et : ''}` : '-'],
       ];
