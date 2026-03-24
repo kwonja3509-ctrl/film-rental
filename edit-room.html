@@ -621,6 +621,8 @@ async function handleSubmit(ev) {
     await sb.from('rentals').insert({
       user_id: currentUser.id,
       user_name: currentUser.name,
+      phone: currentUser.phone || '',
+      email: currentUser.email || '',
       type: '편집실대관',
       room: form.room.value,
       start_date: sd,
