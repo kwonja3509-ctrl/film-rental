@@ -1083,13 +1083,21 @@ async function openHistory() {
         </div>
         ${r.project_title ? `<p style="font-size:13px;font-weight:600;color:var(--heading);margin-bottom:6px;">${r.project_title}</p>` : ''}
         <p style="font-size:12px;color:var(--muted);margin-bottom:4px;">${r.start_date||''} → ${r.end_date||''}</p>
-        <p style="font-size:12px;color:var(--body);">${items.slice(0,3).join(', ')}${items.length>3?` 외 ${items.length-3}건`:''}</p>
+        <p style="font-size:12px;color:var(--body);margin-bottom:${r.status==='pending'?'10px':'0'};">${items.slice(0,3).join(', ')}${items.length>3?` 외 ${items.length-3}건`:''}</p>
+        ${r.status === 'pending' ? `<button onclick="cancelRental('${r.id}')" style="width:100%;padding:7px;border-radius:7px;border:1px solid #EF4444;background:none;color:#EF4444;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;" onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='none'">신청 취소</button>` : ''}
       </div>`;
     }).join('');
   }
 }
 function closeHistory() {
   document.getElementById('m-history').style.display = 'none';
+}
+
+async function cancelRental(id) {
+  if (!confirm('신청을 취소할까요?')) return;
+  const { error } = await sb.from('rentals').delete().eq('id', id).eq('user_id', currentUser.id);
+  if (error) { alert('취소 중 오류가 발생했습니다.'); return; }
+  openHistory();
 }
 
 /* ── 승인된 대여 전체 로드 ── */
