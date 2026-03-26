@@ -270,12 +270,12 @@
           <p style="font-size:12px;color:var(--muted);">연세예술원 영화학 주임교수 유영식</p>
         </div>
       </div>
-    </div>
-    <div style="padding:14px 18px;background:var(--surface);border:1.5px solid var(--border);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);margin-bottom:20px;">
-      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--body);">
-        <input type="checkbox" id="rules-agree" style="width:16px;height:16px;accent-color:var(--blue);cursor:pointer;">
-        <span>편집실 대관 규정을 확인하고 동의합니다 <span style="color:var(--blue);">*</span></span>
-      </label>
+      <div id="rules-agree-wrap" style="display:none;padding:14px 18px;background:var(--surface);border:1.5px solid var(--border);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--body);">
+          <input type="checkbox" id="rules-agree" style="width:16px;height:16px;accent-color:var(--blue);cursor:pointer;">
+          <span>편집실 대관 규정을 확인하고 동의합니다 <span style="color:var(--blue);">*</span></span>
+        </label>
+      </div>
     </div>
 
     <form id="ef" onsubmit="handleSubmit(event)">
@@ -456,11 +456,13 @@ function showForm() {
 }
 
 function toggleRules() {
-  const content = document.getElementById('rules-content');
-  const chevron = document.getElementById('rules-chevron');
-  const toggle  = document.getElementById('rules-toggle');
-  const isOpen  = content.style.display === 'block';
-  content.style.display = isOpen ? 'none' : 'block';
+  const content    = document.getElementById('rules-content');
+  const chevron    = document.getElementById('rules-chevron');
+  const toggle     = document.getElementById('rules-toggle');
+  const agreeWrap  = document.getElementById('rules-agree-wrap');
+  const isOpen     = content.style.display === 'block';
+  content.style.display   = isOpen ? 'none' : 'block';
+  agreeWrap.style.display = isOpen ? 'none' : 'block';
   chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
   toggle.style.borderRadius = isOpen ? 'var(--r-lg)' : 'var(--r-lg) var(--r-lg) 0 0';
 }
