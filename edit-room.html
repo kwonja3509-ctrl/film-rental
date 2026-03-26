@@ -271,6 +271,12 @@
         </div>
       </div>
     </div>
+    <div style="padding:14px 18px;background:var(--surface);border:1.5px solid var(--border);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);margin-bottom:20px;">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--body);">
+        <input type="checkbox" id="rules-agree" style="width:16px;height:16px;accent-color:var(--blue);cursor:pointer;">
+        <span>편집실 대관 규정을 확인하고 동의합니다 <span style="color:var(--blue);">*</span></span>
+      </label>
+    </div>
 
     <form id="ef" onsubmit="handleSubmit(event)">
       <div class="fsec">
@@ -660,6 +666,7 @@ async function handleSubmit(ev) {
   const errEl = document.getElementById('ef-err');
   errEl.classList.remove('on');
   const form = ev.target;
+  if (!document.getElementById('rules-agree').checked) { errEl.textContent = '대관 규정에 동의해주세요.'; errEl.classList.add('on'); return; }
   if (!form.room.value) { errEl.textContent = '편집실을 선택해주세요.'; errEl.classList.add('on'); return; }
   const sd = form.start_date.value, st = form.start_time.value;
   const ed = form.end_date.value,   et = form.end_time.value;
