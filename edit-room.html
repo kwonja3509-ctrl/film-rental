@@ -129,6 +129,7 @@
     <div class="tab-bar" style="max-width:320px;margin:0 auto 20px;">
       <button class="tab-btn on" id="gt-login-btn" onclick="switchGateTab('login')">로그인</button>
       <button class="tab-btn" id="gt-signup-btn" onclick="switchGateTab('signup')">회원가입</button>
+      <button class="tab-btn" id="gt-find-btn" onclick="switchGateTab('find')">찾기</button>
     </div>
 
     <div class="tab-pane on" id="gt-login">
@@ -179,6 +180,41 @@
         <p class="suc" id="su-ok">가입 완료! 로그인해주세요.</p>
         <button class="btn-dark" style="width:100%;margin-top:14px;" onclick="doSignup()">가입하기</button>
         <button class="btn-outline" style="margin-top:8px;" onclick="switchGateTab('login')">이미 계정이 있어요</button>
+      </div>
+    </div>
+
+    <!-- 찾기 탭 -->
+    <div class="tab-pane" id="gt-find">
+      <div class="gate-form">
+        <div class="tab-bar" style="margin-bottom:16px;">
+          <button class="tab-btn on" id="ft-id-btn" onclick="switchFindTab('id')">아이디 찾기</button>
+          <button class="tab-btn" id="ft-pw-btn" onclick="switchFindTab('pw')">비밀번호 찾기</button>
+        </div>
+        <div class="tab-pane on" id="ft-id">
+          <div style="margin-bottom:10px;">
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">이름</label>
+            <input type="text" id="fi-name" class="inp" placeholder="가입한 이름">
+          </div>
+          <p class="err" id="fi-err"></p>
+          <div class="suc" id="fi-res"></div>
+          <button class="btn-dark" style="width:100%;margin-top:14px;" onclick="doFindId()">아이디 찾기</button>
+        </div>
+        <div class="tab-pane" id="ft-pw">
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px;">
+            <div>
+              <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">아이디</label>
+              <input type="text" id="fp-id" class="inp" placeholder="아이디">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">이름</label>
+              <input type="text" id="fp-name" class="inp" placeholder="이름">
+            </div>
+          </div>
+          <p class="err" id="fp-err"></p>
+          <div class="suc" id="fp-res"></div>
+          <button class="btn-dark" style="width:100%;margin-top:14px;" onclick="doFindPw()">비밀번호 확인</button>
+        </div>
+        <button class="btn-outline" style="margin-top:10px;" onclick="switchGateTab('login')">로그인으로 돌아가기</button>
       </div>
     </div>
   </div>
@@ -422,10 +458,45 @@ function showForm() {
 }
 
 function switchGateTab(t) {
-  ['login','signup'].forEach(k => {
+  ['login','signup','find'].forEach(k => {
     document.getElementById(`gt-${k}`)?.classList.toggle('on', k===t);
     document.getElementById(`gt-${k}-btn`)?.classList.toggle('on', k===t);
   });
+}
+
+function switchFindTab(t) {
+  ['id','pw'].forEach(k => {
+    document.getElementById(`ft-${k}`)?.classList.toggle('on', k===t);
+    document.getElementById(`ft-${k}-btn`)?.classList.toggle('on', k===t);
+  });
+}
+
+function doFindId() {
+  const name = document.getElementById('fi-name').value.trim();
+  const err = document.getElementById('fi-err');
+  const res = document.getElementById('fi-res');
+  err.classList.remove('on'); res.classList.remove('on');
+  if (!name) { err.textContent='이름을 입력해주세요.'; err.classList.add('on'); return; }
+  const matches = BASE_USERS.filter(u => u.name === name);
+  if (!matches.length) { err.textContent='해당 이름으로 등록된 계정이 없습니다.'; err.classList.add('on'); return; }
+  const ids = [...new Set(matches.map(u => u.id))];
+  res.innerHTML = `<strong>${name}</strong> 님의 아이디: ` + ids.map(id => `<span style="font-family:monospace;color:var(--blue);">${id}</span>`).join(', ');
+  res.classList.add('on');
+}
+
+async function doFindPw() {
+  const id   = document.getElementById('fp-id').value.trim();
+  const name = document.getElementById('fp-name').value.trim();
+  const err  = document.getElementById('fp-err');
+  const res  = document.getElementById('fp-res');
+  err.classList.remove('on'); res.classList.remove('on');
+  if (!id||!name) { err.textContent='아이디와 이름을 모두 입력해주세요.'; err.classList.add('on'); return; }
+  const { data } = await sb.from('film_users').select('password').eq('id', id).eq('name', name).single();
+  if (data?.password) {
+    res.innerHTML = `비밀번호: <span style="font-family:monospace;color:var(--blue);">${data.password}</span>`;
+    res.classList.add('on'); return;
+  }
+  err.textContent='일치하는 계정 정보가 없습니다.'; err.classList.add('on');
 }
 
 async function doLogin() {
