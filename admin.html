@@ -220,7 +220,7 @@
 
   <script>
     // ─── 비밀번호 해시 (SHA-256, 원본 비밀번호는 코드에 없음) ───
-    const ADMIN_HASH = '9af15b336e6a9619928537df30b2e6a2376569fcf9d7e773eccede65606529a0';
+    const ADMIN_HASH = '30e30d0a73ec75d0f577290077530ce09bd13728e29a00e4802b0d602e11c5ce';
     async function hashPw(pw) {
       const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
       return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
