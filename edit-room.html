@@ -607,7 +607,7 @@ async function doLogin() {
   if (user.approved === false) { err.textContent = '관리자 승인 대기 중입니다. 승인 후 로그인이 가능합니다.'; err.classList.add('on'); return; }
   currentUser = user;
   sessionStorage.setItem('film_user', JSON.stringify(user));
-  const nu = document.getElementById('nav-user'); nu.textContent = `${user.name} 님`; nu.style.display = 'block';
+  const nu = document.getElementById('nav-user'); nu.textContent = `${user.name} 님 ▾`; nu.style.display = 'block';
   document.getElementById('ef-name').value = user.name;
   document.getElementById('ef-sid').value  = user.id;
   showForm();
