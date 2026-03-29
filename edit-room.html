@@ -784,7 +784,7 @@ setDateDefaults();
   const saved = sessionStorage.getItem('film_user');
   if (saved) {
     currentUser = JSON.parse(saved);
-    document.getElementById('nav-user').textContent = `${currentUser.name} 님`;
+    const nu = document.getElementById('nav-user'); nu.textContent = `${currentUser.name} 님`; nu.style.display = 'block';
     document.getElementById('ef-name').value = currentUser.name;
     document.getElementById('ef-sid').value  = currentUser.id;
     showForm();
