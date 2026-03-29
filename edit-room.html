@@ -481,22 +481,34 @@ async function openHistory() {
   const list = document.getElementById('history-list');
   list.innerHTML = `<p style="text-align:center;color:var(--muted);padding:24px 0;font-size:13px;">불러오는 중...</p>`;
   document.getElementById('m-history').style.display = 'flex';
-  const { data: mine } = await sb.from('rentals').select('*').eq('user_id', currentUser.id).eq('type', '편집실대관').order('created_at', {ascending: false});
+  const { data: mine } = await sb.from('rentals').select('*').eq('user_id', currentUser.id).order('created_at', {ascending: false});
   const statusLabel = { pending:'대기 중', approved:'승인 완료', rejected:'거절', returned:'완료' };
   const statusColor = { pending:'#F59E0B', approved:'#22C55E', rejected:'#EF4444', returned:'#8A8A86' };
   if (!mine || mine.length === 0) {
     list.innerHTML = `<p style="text-align:center;color:var(--muted);padding:24px 0;font-size:13px;">신청 내역이 없습니다</p>`;
   } else {
     list.innerHTML = mine.map(r => {
+      const isRoom = r.type === '편집실대관';
       const room = (r.room||'').replace('편집실1','편집실 1호').replace('편집실2','편집실 2호');
+      const items = Array.isArray(r.items) ? r.items : [];
+      const typeTag = isRoom
+        ? `<span style="font-size:10px;background:rgba(55,132,244,0.15);color:var(--blue);padding:2px 7px;border-radius:20px;font-weight:600;">편집실</span>`
+        : `<span style="font-size:10px;background:rgba(255,255,255,0.1);color:var(--muted);padding:2px 7px;border-radius:20px;font-weight:600;">기자재</span>`;
       return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <span style="font-size:12px;font-weight:600;color:${statusColor[r.status]||'var(--muted)'};">${statusLabel[r.status]||r.status}</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            ${typeTag}
+            <span style="font-size:12px;font-weight:600;color:${statusColor[r.status]||'var(--muted)'};">${statusLabel[r.status]||r.status}</span>
+          </div>
           <span style="font-size:11px;color:var(--muted-light);">${r.created_at ? r.created_at.slice(0,10) : ''}</span>
         </div>
         ${r.project_title ? `<p style="font-size:13px;font-weight:600;color:var(--heading);margin-bottom:6px;">${r.project_title}</p>` : ''}
-        <p style="font-size:12px;color:var(--muted);margin-bottom:4px;">${room}</p>
-        <p style="font-size:12px;color:var(--body);margin-bottom:${r.status==='pending'?'10px':'0'};">${r.start_date||''} ${r.start_time||''} → ${r.end_date||''} ${r.end_time||''}</p>
+        ${isRoom ? `<p style="font-size:12px;color:var(--muted);margin-bottom:4px;">${room}</p>` : ''}
+        <p style="font-size:12px;color:var(--body);margin-bottom:${r.status==='pending'?'10px':'0'};">
+          ${isRoom
+            ? `${r.start_date||''} ${r.start_time||''} → ${r.end_date||''} ${r.end_time||''}`
+            : `${items.slice(0,3).join(', ')}${items.length>3?` 외 ${items.length-3}건`:''}`}
+        </p>
         ${r.status === 'pending' ? `<button onclick="cancelRental('${r.id}')" style="width:100%;padding:7px;border-radius:7px;border:1px solid #EF4444;background:none;color:#EF4444;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;" onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='none'">신청 취소</button>` : ''}
       </div>`;
     }).join('');
