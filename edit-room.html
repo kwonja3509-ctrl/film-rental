@@ -113,7 +113,10 @@
       <img src="./brand_logo/logo.png" alt="연세예술원 영화학">
     </a>
     <div style="display:flex;align-items:center;gap:10px;">
-      <span id="nav-user" style="font-size:12px;color:rgba(255,255,255,0.6);"></span>
+      <button id="nav-user" onclick="openHistory()"
+        style="display:none;font-size:12px;color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:inherit;transition:all 0.15s;"
+        onmouseover="this.style.background='rgba(255,255,255,0.18)'"
+        onmouseout="this.style.background='rgba(255,255,255,0.1)'"></button>
       <div style="display:flex;align-items:center;gap:4px;">
         <a href="rental-select.html" class="nav-back">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -231,6 +234,19 @@
 
   </div>
 
+
+  <!-- 내 신청 내역 오버레이 -->
+  <div id="m-history" onclick="if(event.target===this)closeHistory()" style="display:none;position:fixed;inset:0;background:rgba(26,26,24,0.5);z-index:200;align-items:center;justify-content:center;">
+    <div style="background:var(--surface);border-radius:var(--r-xl);padding:28px;width:100%;max-width:460px;margin:20px;box-shadow:var(--shadow-lg);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <h3 style="font-size:17px;font-weight:700;color:var(--heading);letter-spacing:-0.02em;">내 신청 내역</h3>
+        <button onclick="closeHistory()" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="history-list" style="max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+  </div>
 
   <!-- 신청서 폼 -->
   <div id="form-section">
@@ -459,6 +475,43 @@ function getAllUsers() {
 
 let currentUser = null;
 
+/* ── 내 신청 내역 ── */
+async function openHistory() {
+  if (!currentUser) return;
+  const list = document.getElementById('history-list');
+  list.innerHTML = `<p style="text-align:center;color:var(--muted);padding:24px 0;font-size:13px;">불러오는 중...</p>`;
+  document.getElementById('m-history').style.display = 'flex';
+  const { data: mine } = await sb.from('rentals').select('*').eq('user_id', currentUser.id).eq('type', '편집실대관').order('created_at', {ascending: false});
+  const statusLabel = { pending:'대기 중', approved:'승인 완료', rejected:'거절', returned:'완료' };
+  const statusColor = { pending:'#F59E0B', approved:'#22C55E', rejected:'#EF4444', returned:'#8A8A86' };
+  if (!mine || mine.length === 0) {
+    list.innerHTML = `<p style="text-align:center;color:var(--muted);padding:24px 0;font-size:13px;">신청 내역이 없습니다</p>`;
+  } else {
+    list.innerHTML = mine.map(r => {
+      const room = (r.room||'').replace('편집실1','편집실 1호').replace('편집실2','편집실 2호');
+      return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:600;color:${statusColor[r.status]||'var(--muted)'};">${statusLabel[r.status]||r.status}</span>
+          <span style="font-size:11px;color:var(--muted-light);">${r.created_at ? r.created_at.slice(0,10) : ''}</span>
+        </div>
+        ${r.project_title ? `<p style="font-size:13px;font-weight:600;color:var(--heading);margin-bottom:6px;">${r.project_title}</p>` : ''}
+        <p style="font-size:12px;color:var(--muted);margin-bottom:4px;">${room}</p>
+        <p style="font-size:12px;color:var(--body);margin-bottom:${r.status==='pending'?'10px':'0'};">${r.start_date||''} ${r.start_time||''} → ${r.end_date||''} ${r.end_time||''}</p>
+        ${r.status === 'pending' ? `<button onclick="cancelRental('${r.id}')" style="width:100%;padding:7px;border-radius:7px;border:1px solid #EF4444;background:none;color:#EF4444;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;" onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='none'">신청 취소</button>` : ''}
+      </div>`;
+    }).join('');
+  }
+}
+function closeHistory() {
+  document.getElementById('m-history').style.display = 'none';
+}
+async function cancelRental(id) {
+  if (!confirm('신청을 취소할까요?')) return;
+  const { error } = await sb.from('rentals').delete().eq('id', id).eq('user_id', currentUser.id);
+  if (error) { alert('취소 중 오류가 발생했습니다.'); return; }
+  openHistory();
+}
+
 function showForm() {
   document.getElementById('login-gate').classList.remove('on');
   document.getElementById('form-section').classList.add('on');
@@ -542,7 +595,7 @@ async function doLogin() {
   if (user.approved === false) { err.textContent = '관리자 승인 대기 중입니다. 승인 후 로그인이 가능합니다.'; err.classList.add('on'); return; }
   currentUser = user;
   sessionStorage.setItem('film_user', JSON.stringify(user));
-  document.getElementById('nav-user').textContent = `${user.name} 님`;
+  const nu = document.getElementById('nav-user'); nu.textContent = `${user.name} 님`; nu.style.display = 'block';
   document.getElementById('ef-name').value = user.name;
   document.getElementById('ef-sid').value  = user.id;
   showForm();
