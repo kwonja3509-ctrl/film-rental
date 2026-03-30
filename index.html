@@ -983,26 +983,52 @@ async function openHistory() {
        </div>`
     : mine.map(r => {
       const items = Array.isArray(r.items) ? r.items : [];
+      const isRoom = r.type === '편집실대관';
+      const room = (r.room||'').replace('편집실1','편집실 1호').replace('편집실2','편집실 2호');
+      const typeLabel = isRoom ? '🖥️ 편집실 대관' : '📷 기자재 대여';
+      const summary = isRoom
+        ? `${room} · ${r.start_date||''} ${r.start_time||''} → ${r.end_date||''} ${r.end_time||''}`
+        : `${items.slice(0,3).join(', ')}${items.length > 3 ? ` 외 ${items.length-3}개` : ''}`;
+      const detail = isRoom
+        ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--body);display:flex;flex-direction:column;gap:5px;">
+            <p>🚪 ${room}</p>
+            <p>📅 ${r.start_date||''} ${r.start_time||''} → ${r.end_date||''} ${r.end_time||''}</p>
+            ${r.project_title ? `<p>🎬 ${r.project_title}</p>` : ''}
+            ${r.message ? `<p>📝 ${r.message}</p>` : ''}
+            <p style="color:var(--muted-light);">신청일: ${r.created_at ? new Date(r.created_at).toLocaleDateString('ko-KR') : ''}</p>
+           </div>`
+        : `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--body);display:flex;flex-direction:column;gap:5px;">
+            ${items.length ? `<p>📦 ${items.join(', ')}</p>` : ''}
+            <p>📅 ${r.start_date||''} → ${r.end_date||''}</p>
+            ${r.project_title ? `<p>🎬 ${r.project_title}</p>` : ''}
+            ${r.message ? `<p>📝 ${r.message}</p>` : ''}
+            <p style="color:var(--muted-light);">신청일: ${r.created_at ? new Date(r.created_at).toLocaleDateString('ko-KR') : ''}</p>
+           </div>`;
       return `
-      <div style="border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;background:var(--bg);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <span style="font-size:12px;font-weight:600;color:var(--heading);">
-            ${r.type === '장비대여' ? '📷 장비 대여' : '🖥️ 편집실 대관'}
-          </span>
-          ${badge(r.status || 'pending')}
+      <div style="border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;background:var(--bg);cursor:pointer;" onclick="toggleHistoryDetail(this)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:12px;font-weight:600;color:var(--heading);">${typeLabel}</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            ${badge(r.status || 'pending')}
+            <span class="detail-chevron" style="font-size:11px;color:var(--muted);transition:transform 0.2s;">▾</span>
+          </div>
         </div>
-        ${r.project_title ? `<p style="font-size:13px;font-weight:500;color:var(--heading);margin-bottom:5px;">${r.project_title}</p>` : ''}
-        ${r.type === '장비대여'
-          ? `<p style="font-size:12px;color:var(--muted);margin-bottom:4px;">🗓 ${r.start_date||''} – ${r.end_date||''}</p>
-             <p style="font-size:12px;color:var(--body);">${items.slice(0,3).join(', ')}${items.length > 3 ? ` 외 ${items.length - 3}개` : ''}</p>`
-          : `<p style="font-size:12px;color:var(--muted);margin-bottom:4px;">🗓 ${r.start_date||''} ${r.start_time||''} – ${r.end_date||''} ${r.end_time||''}</p>
-             <p style="font-size:12px;color:var(--body);">${r.room || ''}</p>`
-        }
-        <p style="font-size:11px;color:var(--muted-light);margin-top:6px;">신청일: ${r.created_at ? new Date(r.created_at).toLocaleDateString('ko-KR') : ''}</p>
+        <p style="font-size:12px;color:var(--muted);">${summary}</p>
+        <div class="detail-body" style="display:none;">
+          ${detail}
+        </div>
       </div>
     `}).join('');
 
   document.getElementById('history-list').innerHTML = html;
+}
+
+function toggleHistoryDetail(card) {
+  const body = card.querySelector('.detail-body');
+  const chevron = card.querySelector('.detail-chevron');
+  const open = body.style.display === 'none' || body.style.display === '';
+  body.style.display = open ? 'block' : 'none';
+  if (chevron) chevron.style.transform = open ? 'rotate(180deg)' : '';
 }
 
 /* ── 초기화 ── */
