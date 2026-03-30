@@ -1001,12 +1001,14 @@ async function openHistory() {
             ${r.project_title ? `<p style="font-size:12px;color:var(--muted);">🎬 ${r.project_title}</p>` : ''}
             ${r.message ? `<p style="font-size:12px;color:var(--muted);">📝 ${r.message}</p>` : ''}
            </div>`
-        : `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
-            <p style="font-size:11px;color:var(--muted);margin-bottom:6px;">대여 장비</p>
-            ${items.map(it=>`<p style="font-size:12px;color:var(--body);margin-bottom:3px;">· ${it}</p>`).join('')}
-            <p style="font-size:12px;color:var(--muted);margin-top:6px;">📅 ${r.start_date||''} → ${r.end_date||''}</p>
+        : `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:4px;">
+            <p style="font-size:12px;color:var(--muted);">📅 ${r.start_date||''} → ${r.end_date||''}</p>
             ${r.project_title ? `<p style="font-size:12px;color:var(--muted);">🎬 ${r.project_title}</p>` : ''}
             ${r.message ? `<p style="font-size:12px;color:var(--muted);">📝 ${r.message}</p>` : ''}
+            <div style="margin-top:4px;">
+              <p style="font-size:11px;color:var(--muted);margin-bottom:4px;">대여 장비</p>
+              ${items.map(it=>`<p style="font-size:12px;color:var(--body);margin-bottom:3px;">· ${it}</p>`).join('')}
+            </div>
            </div>`;
       return `
       <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;cursor:pointer;" onclick="toggleHistoryDetail(this)">
