@@ -494,25 +494,48 @@ async function openHistory() {
       const typeTag = isRoom
         ? `<span style="font-size:10px;background:rgba(55,132,244,0.15);color:var(--blue);padding:2px 7px;border-radius:20px;font-weight:600;">편집실</span>`
         : `<span style="font-size:10px;background:rgba(255,255,255,0.1);color:var(--muted);padding:2px 7px;border-radius:20px;font-weight:600;">기자재</span>`;
-      return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      const summary = isRoom
+        ? `${room} · ${r.start_date||''} ${r.start_time||''} → ${r.end_date||''} ${r.end_time||''}`
+        : `${items.slice(0,3).join(', ')}${items.length>3?` 외 ${items.length-3}건`:''}`;
+      const detail = isRoom
+        ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--body);display:flex;flex-direction:column;gap:5px;">
+            <p>🚪 ${room}</p>
+            <p>📅 ${r.start_date||''} ${r.start_time||''} → ${r.end_date||''} ${r.end_time||''}</p>
+            ${r.project_title ? `<p>🎬 ${r.project_title}</p>` : ''}
+            ${r.message ? `<p>📝 ${r.message}</p>` : ''}
+           </div>`
+        : `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--body);display:flex;flex-direction:column;gap:5px;">
+            ${items.length ? `<p>📦 ${items.join(', ')}</p>` : ''}
+            <p>📅 ${r.start_date||''} ${r.start_time||''} → ${r.end_date||''} ${r.end_time||''}</p>
+            ${r.project_title ? `<p>🎬 ${r.project_title}</p>` : ''}
+            ${r.message ? `<p>📝 ${r.message}</p>` : ''}
+           </div>`;
+      return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px;cursor:pointer;" onclick="toggleHistoryDetail(this)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <div style="display:flex;align-items:center;gap:6px;">
             ${typeTag}
             <span style="font-size:12px;font-weight:600;color:${statusColor[r.status]||'var(--muted)'};">${statusLabel[r.status]||r.status}</span>
           </div>
-          <span style="font-size:11px;color:var(--muted-light);">${r.created_at ? r.created_at.slice(0,10) : ''}</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;color:var(--muted-light);">${r.created_at ? r.created_at.slice(0,10) : ''}</span>
+            <span class="detail-chevron" style="font-size:11px;color:var(--muted);transition:transform 0.2s;">▾</span>
+          </div>
         </div>
-        ${r.project_title ? `<p style="font-size:13px;font-weight:600;color:var(--heading);margin-bottom:6px;">${r.project_title}</p>` : ''}
-        ${isRoom ? `<p style="font-size:12px;color:var(--muted);margin-bottom:4px;">${room}</p>` : ''}
-        <p style="font-size:12px;color:var(--body);margin-bottom:${r.status==='pending'?'10px':'0'};">
-          ${isRoom
-            ? `${r.start_date||''} ${r.start_time||''} → ${r.end_date||''} ${r.end_time||''}`
-            : `${items.slice(0,3).join(', ')}${items.length>3?` 외 ${items.length-3}건`:''}`}
-        </p>
-        ${r.status === 'pending' ? `<button onclick="cancelRental('${r.id}')" style="width:100%;padding:7px;border-radius:7px;border:1px solid #EF4444;background:none;color:#EF4444;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;" onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='none'">신청 취소</button>` : ''}
+        <p style="font-size:12px;color:var(--muted);">${summary}</p>
+        <div class="detail-body" style="display:none;">
+          ${detail}
+          ${r.status === 'pending' ? `<button onclick="event.stopPropagation();cancelRental('${r.id}')" style="width:100%;margin-top:10px;padding:7px;border-radius:7px;border:1px solid #EF4444;background:none;color:#EF4444;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;" onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='none'">신청 취소</button>` : ''}
+        </div>
       </div>`;
     }).join('');
   }
+}
+function toggleHistoryDetail(card) {
+  const body = card.querySelector('.detail-body');
+  const chevron = card.querySelector('.detail-chevron');
+  const open = body.style.display === 'none' || body.style.display === '';
+  body.style.display = open ? 'block' : 'none';
+  if (chevron) chevron.style.transform = open ? 'rotate(180deg)' : '';
 }
 function closeHistory() {
   document.getElementById('m-history').style.display = 'none';
