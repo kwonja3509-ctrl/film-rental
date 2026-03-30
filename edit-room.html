@@ -495,20 +495,21 @@ async function openHistory() {
         ? `<span style="font-size:10px;background:rgba(55,132,244,0.15);color:var(--blue);padding:2px 7px;border-radius:20px;font-weight:600;">편집실</span>`
         : `<span style="font-size:10px;background:rgba(255,255,255,0.1);color:var(--muted);padding:2px 7px;border-radius:20px;font-weight:600;">기자재</span>`;
       const summary = isRoom
-        ? `${room} · ${r.start_date||''} ${r.start_time||''} → ${r.end_date||''} ${r.end_time||''}`
-        : `${items.slice(0,3).join(', ')}${items.length>3?` 외 ${items.length-3}건`:''}`;
+        ? `${room} · ${r.start_date||''} ${r.start_time||''}`
+        : `${items.slice(0,2).join(', ')}${items.length>2?` 외 ${items.length-2}건`:''}`;
       const detail = isRoom
-        ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--body);display:flex;flex-direction:column;gap:5px;">
-            <p>🚪 ${room}</p>
-            <p>📅 ${r.start_date||''} ${r.start_time||''} → ${r.end_date||''} ${r.end_time||''}</p>
-            ${r.project_title ? `<p>🎬 ${r.project_title}</p>` : ''}
-            ${r.message ? `<p>📝 ${r.message}</p>` : ''}
+        ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:4px;">
+            ${room ? `<p style="font-size:12px;color:var(--muted);">📍 ${room}</p>` : ''}
+            <p style="font-size:12px;color:var(--muted);">📅 ${r.start_date||''} ${r.start_time||''} → ${r.end_date||''} ${r.end_time||''}</p>
+            ${r.project_title ? `<p style="font-size:12px;color:var(--muted);">🎬 ${r.project_title}</p>` : ''}
+            ${r.message ? `<p style="font-size:12px;color:var(--muted);">📝 ${r.message}</p>` : ''}
            </div>`
-        : `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--body);display:flex;flex-direction:column;gap:5px;">
-            ${items.length ? `<p>📦 ${items.join(', ')}</p>` : ''}
-            <p>📅 ${r.start_date||''} ${r.start_time||''} → ${r.end_date||''} ${r.end_time||''}</p>
-            ${r.project_title ? `<p>🎬 ${r.project_title}</p>` : ''}
-            ${r.message ? `<p>📝 ${r.message}</p>` : ''}
+        : `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+            <p style="font-size:11px;color:var(--muted);margin-bottom:6px;">대여 장비</p>
+            ${items.map(it=>`<p style="font-size:12px;color:var(--body);margin-bottom:3px;">· ${it}</p>`).join('')}
+            <p style="font-size:12px;color:var(--muted);margin-top:6px;">📅 ${r.start_date||''} → ${r.end_date||''}</p>
+            ${r.project_title ? `<p style="font-size:12px;color:var(--muted);">🎬 ${r.project_title}</p>` : ''}
+            ${r.message ? `<p style="font-size:12px;color:var(--muted);">📝 ${r.message}</p>` : ''}
            </div>`;
       return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px;cursor:pointer;" onclick="toggleHistoryDetail(this)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
@@ -516,7 +517,7 @@ async function openHistory() {
             ${typeTag}
             <span style="font-size:12px;font-weight:600;color:${statusColor[r.status]||'var(--muted)'};">${statusLabel[r.status]||r.status}</span>
           </div>
-          <div style="display:flex;align-items:center;gap:6px;">
+          <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-size:11px;color:var(--muted-light);">${r.created_at ? r.created_at.slice(0,10) : ''}</span>
             <span class="detail-chevron" style="font-size:11px;color:var(--muted);transition:transform 0.2s;">▾</span>
           </div>
