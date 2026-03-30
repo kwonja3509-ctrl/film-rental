@@ -990,7 +990,7 @@ async function openHistory() {
       const room = (r.room||'').replace('편집실1','편집실 1호').replace('편집실2','편집실 2호');
       const typeTag = isRoom
         ? `<span style="font-size:10px;background:rgba(55,132,244,0.15);color:var(--blue);padding:2px 7px;border-radius:20px;font-weight:600;">편집실</span>`
-        : `<span style="font-size:10px;background:rgba(255,255,255,0.1);color:var(--muted);padding:2px 7px;border-radius:20px;font-weight:600;">기자재</span>`;
+        : `<span style="font-size:10px;background:rgba(249,115,22,0.15);color:#F97316;padding:2px 7px;border-radius:20px;font-weight:600;">기자재</span>`;
       const summary = isRoom
         ? `${room} · ${r.start_date||''} ${r.start_time||''}`
         : `${items.slice(0,2).join(', ')}${items.length>2?` 외 ${items.length-2}건`:''}`;
