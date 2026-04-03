@@ -1,16 +1,14 @@
 // 카카오톡 나에게 보내기 알림
+const KAKAO_CLIENT_ID     = 'a46dfac3ab16f3149298eb6938f21f6f';
+const KAKAO_CLIENT_SECRET = 'FYI57DjlUlOeW7PPe1QCjg2pgBztO0r3';
+const KAKAO_REFRESH_TOKEN = 'IPuQRHOfdTbUN16vw8MjcFLQG4qM0uQ7AAAAAgoNFZsAAAGdVFbX1Kj01SImjvGc';
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  // 디버그: 환경변수 확인
-  const kakaoKeys = Object.keys(process.env).filter(k => k.startsWith('KAKAO'));
-  if (kakaoKeys.length === 0) {
-    return res.status(500).json({ debug: 'KAKAO 환경변수 없음', keys: Object.keys(process.env).slice(0,5) });
-  }
 
   const { message } = req.body;
   if (!message) return res.status(400).json({ error: 'message required' });
@@ -22,9 +20,9 @@ module.exports = async function handler(req, res) {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         grant_type:    'refresh_token',
-        client_id:     process.env.KAKAO_CLIENT_ID,
-        client_secret: process.env.KAKAO_CLIENT_SECRET,
-        refresh_token: process.env.KAKAO_REFRESH_TOKEN,
+        client_id:     KAKAO_CLIENT_ID,
+        client_secret: KAKAO_CLIENT_SECRET,
+        refresh_token: KAKAO_REFRESH_TOKEN,
       }).toString(),
     });
     const tokenData = await tokenRes.json();
