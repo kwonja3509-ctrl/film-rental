@@ -649,7 +649,7 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
-    <div id="history-list" style="max-height:60vh;overflow-y:auto;"></div>
+    <div id="history-list" style="max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;"></div>
   </div>
 </div>
 
@@ -1033,18 +1033,6 @@ async function openHistory() {
     return;
   }
 
-  const statusMap = {
-    pending:  ['대기중',   '#FFA500', '#FFF8EE', 'rgba(255,165,0,0.2)'],
-    approved: ['승인됨',   '#44C67F', 'rgba(68,198,127,0.1)', 'rgba(68,198,127,0.25)'],
-    returned: ['반납완료', '#8A8A86', '#F5F5F3', 'rgba(138,138,134,0.2)'],
-    rejected: ['반려됨',   '#EF4444', '#FFF0F0', 'rgba(239,68,68,0.2)'],
-  };
-
-  const badge = (s) => {
-    const [label, color, bg, border] = statusMap[s] || statusMap.pending;
-    return `<span style="font-size:11px;font-weight:600;color:${color};background:${bg};border:1px solid ${border};border-radius:20px;padding:2px 9px;">${label}</span>`;
-  };
-
   const statusLabel = { pending:'대기 중', approved:'승인 완료', rejected:'거절', returned:'반납 완료' };
   const statusColor = { pending:'#F59E0B', approved:'#22C55E', rejected:'#EF4444', returned:'#8A8A86' };
 
@@ -1080,7 +1068,7 @@ async function openHistory() {
             </div>
            </div>`;
       return `
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;cursor:pointer;" onclick="toggleHistoryDetail(this)">
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px;cursor:pointer;" onclick="toggleHistoryDetail(this)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <div style="display:flex;align-items:center;gap:6px;">
             ${typeTag}
