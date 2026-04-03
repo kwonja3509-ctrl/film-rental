@@ -1027,7 +1027,11 @@ async function openHistory() {
   document.getElementById('history-list').innerHTML = `<div style="text-align:center;padding:40px 0;color:var(--muted);"><p style="font-size:14px;">불러오는 중...</p></div>`;
   openModal('m-history');
 
-  const { data: mine } = await sb.from('rentals').select('*').eq('user_id', currentUser.id).order('created_at', {ascending: false});
+  const { data: mine, error: histErr } = await sb.from('rentals').select('*').eq('user_id', currentUser.id).order('created_at', {ascending: false});
+  if (histErr) {
+    document.getElementById('history-list').innerHTML = `<p style="text-align:center;color:#EF4444;padding:24px 0;font-size:13px;">오류: ${histErr.message}</p>`;
+    return;
+  }
 
   const statusMap = {
     pending:  ['대기중',   '#FFA500', '#FFF8EE', 'rgba(255,165,0,0.2)'],
