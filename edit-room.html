@@ -800,7 +800,7 @@ async function handleSubmit(ev) {
   await new Promise(r => setTimeout(r, 600));
 
   if (currentUser) {
-    await sb.from('rentals').insert({
+    const { error: insertErr } = await sb.from('rentals').insert({
       user_id: currentUser.id,
       user_name: currentUser.name,
       phone: currentUser.phone || '',
@@ -814,6 +814,7 @@ async function handleSubmit(ev) {
       project_title: form.project_title.value || '',
       status: 'pending'
     });
+    if (insertErr) { console.error('rentals insert error:', insertErr); alert('저장 오류: ' + insertErr.message); }
   }
 
   document.getElementById('form-section').classList.remove('on');

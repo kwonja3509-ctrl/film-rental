@@ -1083,19 +1083,22 @@ async function handleRental(ev) {
   await new Promise(r=>setTimeout(r,600));
 
   if (currentUser) {
-    await sb.from('rentals').insert({
+    const { error: insertErr } = await sb.from('rentals').insert({
       user_id: currentUser.id,
       user_name: currentUser.name,
       type: '장비대여',
       items: checked.map(c => c.value),
-      start_date: `${form.start_date.value} ${form.start_time.value}`,
-      end_date: `${form.end_date.value} ${form.end_time.value}`,
+      start_date: form.start_date.value,
+      end_date: form.end_date.value,
+      start_time: form.start_time.value,
+      end_time: form.end_time.value,
       project_title: form.project_title.value || '',
       message: form.message.value || '',
       phone: form.phone.value || '',
       email: form.email.value || '',
       status: 'pending'
     });
+    if (insertErr) { console.error('rentals insert error:', insertErr); alert('저장 오류: ' + insertErr.message); }
   }
 
   // 완료 화면에 선택한 기자재 표시
