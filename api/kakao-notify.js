@@ -6,6 +6,12 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  // 디버그: 환경변수 확인
+  const kakaoKeys = Object.keys(process.env).filter(k => k.startsWith('KAKAO'));
+  if (kakaoKeys.length === 0) {
+    return res.status(500).json({ debug: 'KAKAO 환경변수 없음', keys: Object.keys(process.env).slice(0,5) });
+  }
+
   const { message } = req.body;
   if (!message) return res.status(400).json({ error: 'message required' });
 
