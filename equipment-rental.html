@@ -394,11 +394,11 @@
           </div>
           <div>
             <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">연락처 <span style="color:var(--blue);">*</span></label>
-            <input type="tel" name="phone" class="inp" required placeholder="010-0000-0000">
+            <input type="tel" name="phone" id="rf-phone" class="inp" required placeholder="010-0000-0000">
           </div>
           <div>
             <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;">이메일 <span style="color:var(--blue);">*</span></label>
-            <input type="email" name="email" class="inp" required placeholder="example@yonsei.ac.kr">
+            <input type="email" name="email" id="rf-email" class="inp" required placeholder="example@yonsei.ac.kr">
           </div>
         </div>
       </div>
@@ -730,6 +730,12 @@ let rentedQtys = {}; // 수량 기반 아이템 대여 집계
 function showForm() {
   document.getElementById('login-gate').classList.remove('on');
   document.getElementById('form-section').classList.add('on');
+  if (currentUser) {
+    const phoneEl = document.getElementById('rf-phone');
+    const emailEl = document.getElementById('rf-email');
+    if (phoneEl && currentUser.phone && !phoneEl.value) phoneEl.value = currentUser.phone;
+    if (emailEl && currentUser.email && !emailEl.value) emailEl.value = currentUser.email;
+  }
 }
 
 /* ── 게이트 탭 ── */
