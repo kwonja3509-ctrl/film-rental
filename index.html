@@ -855,6 +855,11 @@ async function doSignup() {
   }
   ok.textContent = '신청 완료! 관리자 승인 후 로그인이 가능합니다.';
   ok.classList.add('on');
+  fetch('/api/kakao-notify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: `🙋 새 회원가입 신청\n이름: ${name}\n학번: ${id}\n\n▶ 관리자 페이지에서 승인해주세요` }),
+  }).catch(() => {});
   ['su-name','su-id','su-pw','su-pw2'].forEach(i=>document.getElementById(i).value='');
   setTimeout(()=>{ ok.classList.remove('on'); }, 4000);
 }

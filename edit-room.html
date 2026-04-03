@@ -815,6 +815,13 @@ async function handleSubmit(ev) {
       status: 'pending'
     });
     if (insertErr) { console.error('rentals insert error:', insertErr); alert('저장 오류: ' + insertErr.message); }
+    else {
+      fetch('/api/kakao-notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `🎬 편집실 대관 신청\n신청자: ${currentUser.name} (${currentUser.id})\n편집실: ${form.room.value}\n기간: ${sd} ${st} → ${ed} ${et}\n\n▶ 관리자 페이지에서 확인하세요` }),
+      }).catch(() => {});
+    }
   }
 
   document.getElementById('form-section').classList.remove('on');

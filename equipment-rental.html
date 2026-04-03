@@ -1099,6 +1099,14 @@ async function handleRental(ev) {
       status: 'pending'
     });
     if (insertErr) { console.error('rentals insert error:', insertErr); alert('저장 오류: ' + insertErr.message); }
+    else {
+      const itemList = checked.map(c => `· ${c.value}`).join('\n');
+      fetch('/api/kakao-notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `📦 기자재 대여 신청\n신청자: ${currentUser.name} (${currentUser.id})\n기간: ${form.start_date.value} → ${form.end_date.value}\n\n${itemList}\n\n▶ 관리자 페이지에서 확인하세요` }),
+      }).catch(() => {});
+    }
   }
 
   // 완료 화면에 선택한 기자재 표시
