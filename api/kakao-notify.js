@@ -1,3 +1,4 @@
+// 카카오톡 나에게 보내기 알림
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
