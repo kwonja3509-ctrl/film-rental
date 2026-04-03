@@ -249,10 +249,16 @@
     <nav class="nav-links">
     </nav>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button id="nav-user" onclick="openHistory()"
-        style="display:none;font-size:12px;color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:inherit;transition:all 0.15s;"
-        onmouseover="this.style.background='rgba(255,255,255,0.18)'"
-        onmouseout="this.style.background='rgba(255,255,255,0.1)'"></button>
+      <div style="position:relative;" id="user-menu-wrap">
+        <button id="nav-user" onclick="toggleUserMenu(event)"
+          style="display:none;font-size:12px;color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:7px;padding:5px 12px;cursor:pointer;font-family:inherit;transition:all 0.15s;"
+          onmouseover="this.style.background='rgba(255,255,255,0.18)'"
+          onmouseout="this.style.background='rgba(255,255,255,0.1)'"></button>
+        <div id="user-dropdown" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:#1c1c28;border:1px solid #2a2a3a;border-radius:10px;min-width:150px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.4);overflow:hidden;">
+          <button onclick="closeUserMenu();openModal('m-history')" style="display:block;width:100%;text-align:left;padding:12px 16px;font-size:13px;color:#e8e8f0;background:none;border:none;border-bottom:1px solid #2a2a3a;cursor:pointer;font-family:inherit;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">📋 내 신청 내역</button>
+          <button onclick="closeUserMenu();openUserModal()" style="display:block;width:100%;text-align:left;padding:12px 16px;font-size:13px;color:#e8e8f0;background:none;border:none;cursor:pointer;font-family:inherit;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='none'">⚙️ 내 정보</button>
+        </div>
+      </div>
       <a href="admin.html" class="nav-link" style="color:rgba(255,255,255,0.65);text-decoration:none;">관리자</a>
       <button class="nav-link" id="nav-login-btn" onclick="openModal('m-login')"
               style="color:rgba(255,255,255,0.65);background:none;border:none;cursor:pointer;font-family:inherit;font-size:13px;padding:6px 12px;border-radius:7px;transition:all 0.15s;"
@@ -571,6 +577,65 @@
   </div>
 </div>
 
+
+<!-- ══════════════════ MODAL: 내 정보 ══════════════════ -->
+<div class="overlay" id="m-myinfo" onclick="if(event.target===this)closeModal('m-myinfo')">
+  <div class="modal" style="max-width:420px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+      <div>
+        <h2 style="font-size:17px;font-weight:700;color:var(--heading);">내 정보</h2>
+        <p id="myinfo-username" style="font-size:12px;color:var(--muted);margin-top:2px;"></p>
+      </div>
+      <button onclick="closeModal('m-myinfo')" style="width:30px;height:30px;background:var(--bg);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- 이메일 / 전화번호 섹션 -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;">
+      <p style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:14px;letter-spacing:0.04em;">이메일 / 전화번호</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">이메일</label>
+          <input id="profile-email" type="email" placeholder="이메일 주소"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--heading);outline:none;font-family:inherit;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">전화번호</label>
+          <input id="profile-phone" type="tel" placeholder="010-0000-0000"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--heading);outline:none;font-family:inherit;box-sizing:border-box;">
+        </div>
+        <p id="profile-msg" style="font-size:11px;min-height:14px;margin:0;"></p>
+        <button onclick="saveProfile()" style="width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">저장</button>
+      </div>
+    </div>
+
+    <!-- 비밀번호 변경 섹션 -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;">
+      <p style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:14px;letter-spacing:0.04em;">비밀번호 변경</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">현재 비밀번호</label>
+          <input id="chpw-current" type="password" placeholder="현재 비밀번호"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--heading);outline:none;font-family:inherit;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">새 비밀번호</label>
+          <input id="chpw-new" type="password" placeholder="새 비밀번호"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--heading);outline:none;font-family:inherit;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px;">새 비밀번호 확인</label>
+          <input id="chpw-confirm" type="password" placeholder="새 비밀번호 다시 입력"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--heading);outline:none;font-family:inherit;box-sizing:border-box;">
+        </div>
+        <p id="chpw-msg" style="font-size:11px;min-height:14px;margin:0;"></p>
+        <button onclick="changePassword()" style="width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">변경하기</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <!-- ══════════════════ MODAL: 신청 내역 ══════════════════ -->
 <div class="overlay" id="m-history" onclick="if(event.target===this)closeModal('m-history')">
@@ -1031,6 +1096,62 @@ async function openHistory() {
     `}).join('');
 
   document.getElementById('history-list').innerHTML = html;
+}
+
+/* ── 유저 메뉴 드롭다운 ── */
+function toggleUserMenu(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('user-dropdown');
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+function closeUserMenu() {
+  document.getElementById('user-dropdown').style.display = 'none';
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('user-menu-wrap');
+  if (wrap && !wrap.contains(e.target)) closeUserMenu();
+});
+
+function openUserModal() {
+  if (!currentUser) return;
+  document.getElementById('myinfo-username').textContent = currentUser.name + ' · ' + currentUser.id;
+  document.getElementById('profile-email').value = currentUser.email || '';
+  document.getElementById('profile-phone').value = currentUser.phone || '';
+  document.getElementById('profile-msg').textContent = '';
+  ['chpw-current','chpw-new','chpw-confirm'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('chpw-msg').textContent = '';
+  openModal('m-myinfo');
+}
+
+/* ── 프로필 저장 ── */
+async function saveProfile() {
+  const email = document.getElementById('profile-email').value.trim();
+  const phone = document.getElementById('profile-phone').value.trim();
+  const msg = document.getElementById('profile-msg');
+  msg.style.color = '#8888a0'; msg.textContent = '저장 중...';
+  const { error } = await sb.from('film_users').update({ email, phone }).eq('id', currentUser.id);
+  if (error) { msg.style.color = '#EF4444'; msg.textContent = '저장 실패'; return; }
+  currentUser.email = email; currentUser.phone = phone;
+  sessionStorage.setItem('film_user', JSON.stringify(currentUser));
+  msg.style.color = '#22C55E'; msg.textContent = '저장됐습니다!';
+}
+
+/* ── 비밀번호 변경 ── */
+async function changePassword() {
+  const cur = document.getElementById('chpw-current').value;
+  const nw  = document.getElementById('chpw-new').value;
+  const cf  = document.getElementById('chpw-confirm').value;
+  const msg = document.getElementById('chpw-msg');
+  msg.style.color = '#EF4444';
+  if (!cur || !nw || !cf) { msg.textContent = '모든 항목을 입력해주세요.'; return; }
+  if (nw !== cf) { msg.textContent = '새 비밀번호가 일치하지 않습니다.'; return; }
+  if (nw.length < 4) { msg.textContent = '4자 이상 입력해주세요.'; return; }
+  const { data: rows } = await sb.from('film_users').select('password').eq('id', currentUser.id).single();
+  if (!rows || rows.password !== cur) { msg.textContent = '현재 비밀번호가 틀렸습니다.'; return; }
+  const { error } = await sb.from('film_users').update({ password: nw }).eq('id', currentUser.id);
+  if (error) { msg.textContent = '변경 실패'; return; }
+  msg.style.color = '#22C55E'; msg.textContent = '변경됐습니다!';
+  ['chpw-current','chpw-new','chpw-confirm'].forEach(i => document.getElementById(i).value = '');
 }
 
 function toggleHistoryDetail(card) {

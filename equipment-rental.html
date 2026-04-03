@@ -1198,13 +1198,17 @@ async function loadRentedItems() {
 function recalcAvailability(startDate, endDate) {
   rentedItems = new Set();
   rentedQtys = {};
+  const today = new Date().toISOString().split('T')[0];
   const s = startDate.slice(0, 10);
   const e = endDate.slice(0, 10);
   allApprovedRentals.forEach(r => {
     const rs = (r.start_date || '').slice(0, 10);
     const re = (r.end_date || '').slice(0, 10);
-    // 날짜 범위가 겹치는 경우만 (rs <= e && re >= s)
-    if (rs <= e && re >= s) {
+    // 이미 시작된 대여: 관리자가 반납 처리하기 전까지 무조건 차단
+    // 미래 대여: 날짜 범위가 겹칠 때만 차단
+    const isOngoing = rs <= today;
+    const overlaps = rs <= e && re >= s;
+    if (isOngoing || overlaps) {
       if (!Array.isArray(r.items)) return;
       r.items.forEach(n => {
         const match = n.match(/^(.+) x(\d+)$/);

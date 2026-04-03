@@ -136,6 +136,11 @@
           회원 승인
           <span id="user-pending-badge" class="hidden ml-1 px-1.5 py-0.5 rounded-full text-xs" style="background: #f87171; color: #fff; font-size: 10px;"></span>
         </button>
+        <button onclick="switchAdminTab('members')" id="admin-tab-members"
+                class="text-sm font-semibold px-5 py-3 transition-colors"
+                style="color: #8888a0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; border-left: none; border-right: none; border-top: none; cursor: pointer;">
+          회원 리스트
+        </button>
       </div>
     </div>
 
@@ -197,6 +202,30 @@
           <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
         </svg>
         <p style="color: #4a4a60;">승인 대기 중인 회원이 없습니다</p>
+      </div>
+    </div>
+  </div>
+
+    <!-- ── 회원 리스트 탭 ── -->
+    <div id="panel-members" class="hidden max-w-6xl mx-auto px-5 pb-8">
+      <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+        <div>
+          <p class="text-sm" style="color: #8888a0;">승인된 전체 회원 목록입니다.</p>
+        </div>
+        <div style="position:relative;">
+          <input id="member-search" type="text" placeholder="이름 또는 아이디 검색"
+            oninput="filterMembers()"
+            style="background:#13131a;border:1px solid #2a2a3a;color:#e8e8f0;border-radius:8px;padding:8px 12px 8px 34px;font-size:13px;outline:none;width:220px;">
+          <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8888a0" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        </div>
+      </div>
+      <div id="members-stats" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6"></div>
+      <div id="members-list" class="space-y-2"></div>
+      <div id="members-empty" class="hidden text-center py-20">
+        <svg class="mx-auto mb-4" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2a2a3a" stroke-width="1.5">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+        <p style="color: #4a4a60;">회원이 없습니다</p>
       </div>
     </div>
   </div>
@@ -308,7 +337,7 @@
     // ─── 탭 전환 ───
     function switchAdminTab(tab) {
       currentAdminTab = tab;
-      const tabs = ['rentals', 'users'];
+      const tabs = ['rentals', 'users', 'members'];
       tabs.forEach(t => {
         const btn = document.getElementById(`admin-tab-${t}`);
         const panel = document.getElementById(`panel-${t}`);
@@ -323,6 +352,7 @@
         }
       });
       if (tab === 'users') renderUsers();
+      if (tab === 'members') renderMembers();
     }
 
     // ─── 통계 업데이트 ───
@@ -462,6 +492,125 @@
           </div>
         </div>`;
       }).join('');
+    }
+
+    // ─── 회원 리스트 ───
+    let allMembers = [];
+    let memberRentalCounts = {};
+
+    async function renderMembers() {
+      const list = document.getElementById('members-list');
+      const empty = document.getElementById('members-empty');
+      list.innerHTML = `<p style="text-align:center;color:#8888a0;padding:32px 0;font-size:13px;">불러오는 중...</p>`;
+
+      const [uRes, rRes] = await Promise.all([
+        fetch(SUPA_URL + '/rest/v1/film_users?approved=eq.true&order=created_at.desc', {
+          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+        }),
+        fetch(SUPA_URL + '/rest/v1/rentals?select=user_id,status', {
+          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+        })
+      ]);
+
+      allMembers = uRes.ok ? await uRes.json() : [];
+      const rentalRows = rRes.ok ? await rRes.json() : [];
+
+      memberRentalCounts = {};
+      rentalRows.forEach(r => {
+        if (!memberRentalCounts[r.user_id]) memberRentalCounts[r.user_id] = { total: 0, approved: 0 };
+        memberRentalCounts[r.user_id].total++;
+        if (r.status === 'approved' || r.status === 'returned') memberRentalCounts[r.user_id].approved++;
+      });
+
+      // 통계
+      const statsEl = document.getElementById('members-stats');
+      const today = new Date().toISOString().split('T')[0];
+      const thisMonth = today.slice(0, 7);
+      const newThisMonth = allMembers.filter(u => (u.created_at || '').startsWith(thisMonth)).length;
+      statsEl.innerHTML = `
+        <div class="rounded-xl p-4" style="background:#13131a;border:1px solid #2a2a3a;">
+          <p class="text-xs mb-1" style="color:#8888a0;">전체 회원</p>
+          <p class="text-2xl font-bold" style="color:#e8e8f0;">${allMembers.length}</p>
+        </div>
+        <div class="rounded-xl p-4" style="background:#13131a;border:1px solid #2a2a3a;">
+          <p class="text-xs mb-1" style="color:#4ade80;">이번 달 가입</p>
+          <p class="text-2xl font-bold" style="color:#4ade80;">${newThisMonth}</p>
+        </div>
+        <div class="rounded-xl p-4" style="background:#13131a;border:1px solid #2a2a3a;">
+          <p class="text-xs mb-1" style="color:#e8b84b;">총 대여 건수</p>
+          <p class="text-2xl font-bold" style="color:#e8b84b;">${rentalRows.length}</p>
+        </div>`;
+
+      renderMemberList(allMembers);
+    }
+
+    function renderMemberList(members) {
+      const list = document.getElementById('members-list');
+      const empty = document.getElementById('members-empty');
+      if (!members || members.length === 0) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      list.innerHTML = members.map(u => {
+        const counts = memberRentalCounts[u.id] || { total: 0, approved: 0 };
+        const joinDate = u.created_at ? u.created_at.slice(0, 10).replace(/-/g, '.') : '-';
+        const safeId = u.id.replace(/"/g, '&quot;');
+        return `
+        <div class="rounded-xl p-4" style="background:#13131a;border:1px solid #2a2a3a;">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+              <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
+                   style="background:rgba(232,184,75,0.15);color:#e8b84b;border:1px solid rgba(232,184,75,0.25);">
+                ${(u.name||'?')[0]}
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                  <span class="font-semibold text-sm" style="color:#e8e8f0;">${u.name || '-'}</span>
+                  <span class="text-xs" style="color:#5a5a70;">${u.id}</span>
+                </div>
+                <div class="flex gap-3 flex-wrap" style="font-size:11px;color:#6a6a80;">
+                  ${u.email ? `<span>✉ ${u.email}</span>` : ''}
+                  ${u.phone ? `<span>📞 ${u.phone}</span>` : ''}
+                  <span>📅 가입 ${joinDate}</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 flex-shrink-0">
+              <div class="text-center">
+                <p class="text-xs mb-0.5" style="color:#8888a0;">총 신청</p>
+                <p class="font-bold text-sm" style="color:#e8e8f0;">${counts.total}</p>
+              </div>
+              <div class="text-center">
+                <p class="text-xs mb-0.5" style="color:#8888a0;">승인/반납</p>
+                <p class="font-bold text-sm" style="color:#4ade80;">${counts.approved}</p>
+              </div>
+              <button type="button" data-uid="${safeId}" onclick="deleteMember(this.getAttribute('data-uid'))"
+                class="btn btn-reject text-xs px-3 py-1.5">삭제</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function filterMembers() {
+      const q = (document.getElementById('member-search').value || '').trim().toLowerCase();
+      if (!q) { renderMemberList(allMembers); return; }
+      renderMemberList(allMembers.filter(u =>
+        (u.name || '').toLowerCase().includes(q) || (u.id || '').toLowerCase().includes(q)
+      ));
+    }
+
+    function deleteMember(userId) {
+      if (!confirm(`'${userId}' 회원을 삭제하시겠습니까?\n삭제 후 복구가 불가합니다.`)) return;
+      fetch(SUPA_URL + '/rest/v1/film_users?id=eq.' + encodeURIComponent(userId), {
+        method: 'DELETE',
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Prefer': 'return=minimal' }
+      }).then(r => {
+        if (!r.ok) { r.text().then(t => alert('삭제 실패: ' + t)); return; }
+        renderMembers();
+      }).catch(e => alert('오류: ' + e.message));
     }
 
     // ─── 회원 승인 / 거절 (fetch API 직접 사용) ───
