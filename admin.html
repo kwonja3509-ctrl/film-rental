@@ -626,40 +626,186 @@
     }
 
     // ─── 장비 관리 ───
-    const ALL_EQUIPMENT_FLAT = [
-      // 바디
-      {id:'c1',name:'Sony FX3 리그 세트 1번'},{id:'c2',name:'Sony FX3 리그 세트 2번'},{id:'c3',name:'Sony FX3 리그 세트 3번'},
-      {id:'c4',name:'Sony FX6 리그 세트'},{id:'c5',name:'Sony A7S3 리그 세트'},{id:'c6',name:'GoPro Hero 11 Black 1번'},
-      {id:'c7',name:'GoPro Hero 11 Black 2번'},{id:'c8',name:'GoPro Hero 11 Black 3번'},{id:'c9',name:'DJI Osmo Pocket 3'},
-      // 렌즈
-      {id:'l1',name:'Sony FE 16-35mm f/2.8 GM 2번'},{id:'l2',name:'Sony FE 24-70mm f/2.8 GM 2번'},
-      {id:'l3',name:'Sony FE 70-200mm f/2.8 GM OSS'},{id:'l4',name:'Sony FE 50mm f/1.2 GM'},
-      {id:'l5',name:'Sony FE 14mm f/1.8 GM'},{id:'l6',name:'COOKE SP3 SET'},{id:'l7',name:'Sony 160GB CFexpress Type A 1번'},
-      {id:'l8',name:'Sony 160GB CFexpress Type A 2번'},
-      // 삼각대&짐벌
-      {id:'t1',name:'Sachtler 유체 삼각대'},{id:'t2',name:'Leofoto 카본 삼각대 1번'},{id:'t3',name:'Leofoto 카본 삼각대 2번'},
-      {id:'t4',name:'Leofoto 카본 삼각대 3번'},{id:'t5',name:'DJI 로닌 프로 2 짐벌 1번'},{id:'t6',name:'DJI 로닌 프로 2 짐벌 2번'},
-      // 악세서리
-      {id:'ac1',name:'SmallRig 퀵릴리즈 플레이트'},{id:'ac2',name:'DJI 드론 (Air3)'},{id:'ac3',name:'Atomos Shogun 모니터 1번'},
-      {id:'ac4',name:'Atomos Shogun 모니터 2번'},{id:'ac5',name:'FEELWORLD F6 PLUS 모니터'},
-      {id:'ac6',name:'HOLLYLAND COSMO C1 무선 송수신기 세트'},{id:'ac23',name:'홀리랜드 송수신기 세트 1번'},
-      {id:'sm2',name:'배경지'},{id:'sm3',name:'휴대용 프로젝터 스크린'},
-      // 조명
-      {id:'li1',name:'NANLITE FORZA 500 II'},{id:'li2',name:'NANLITE FORZA 300 II 1번'},{id:'li3',name:'NANLITE FORZA 300 II 2번'},
-      {id:'li4',name:'NANLUX EVOKE 1200'},{id:'li5',name:'Aputure Light Dome II'},{id:'li6',name:'Aputure Light Dome Mini II'},
-      {id:'li7',name:'NANLITE PavoTube II 30X'},{id:'li8',name:'Quasar Science Q-LED Rainbow 2'},{id:'li9',name:'POTIN- 150'},
-      {id:'li10',name:'Falcon Eyes RX-318TD 1번'},{id:'li11',name:'Falcon Eyes RX-318TD 2번'},
-      {id:'li28',name:'FOMEX E200'},{id:'li29',name:'FOMEX E400'},{id:'li30',name:'Ace M GS Mk II'},
-      {id:'li31',name:'BL2280'},{id:'li32',name:'PFB2424 Kit DFS'},
-      // 스탠드
-      {id:'st1',name:'C스탠드(대) 1번'},{id:'st2',name:'C스탠드(대) 2번'},{id:'st3',name:'C스탠드(중)'},
-      {id:'st4',name:'A스탠드'},{id:'st6',name:'2180 BoomStand (탑 핸드 스탠드)'},{id:'st7',name:'라이트 스탠드'},
-      // 가방/카트
-      {id:'bg1',name:'씨네 카트'},{id:'bg2',name:'카메라 가방 1번'},{id:'bg3',name:'카메라 가방 2번'},
-      // 배터리
-      {id:'bt2',name:'NP-FZ100 배터리'},{id:'bt3',name:'E-CUBE 195w'},{id:'bt4',name:'젠트리 몬스터 390W26A'},
-      {id:'bt5',name:'NP-F970 배터리'},{id:'bt6',name:'BP-U100 배터리(FX6 배터리)'},{id:'bt7',name:'BP-U35 배터리(FX6 배터리)'},
-    ];
+    const ADMIN_EQUIPMENT = {
+      '📷 카메라': {
+        '바디': [
+          {id:'c1',name:'Sony FX6',img:'무제 폴더/sony_pxw_fx6_cinema_camera_body_1673526912_1592066-removebg-preview.png'},
+          {id:'c2',name:'Sony FX3 리그 세트 1번',img:'무제 폴더/FX3 리그세트.png'},
+          {id:'c3',name:'Sony FX3 리그 세트 2번',img:'무제 폴더/FX3 리그세트.png'},
+          {id:'c4',name:'Sony FX3 3번',img:'무제 폴더/SONY-FX3-Interchangeable-Lens-Digital-Camera-Featured-Image-removebg-preview.png'},
+          {id:'c5',name:'Sony FX3 4번',img:'무제 폴더/SONY-FX3-Interchangeable-Lens-Digital-Camera-Featured-Image-removebg-preview.png'},
+          {id:'c6',name:'Sony A7C 1번',img:'무제 폴더/a7c-removebg-preview.png'},
+          {id:'c8',name:'GoPro Hero 11 Black 1번',img:'무제 폴더/goPro_hero_11-removebg-preview.png'},
+          {id:'c9',name:'GoPro Hero 11 Black 2번',img:'무제 폴더/goPro_hero_11-removebg-preview.png'},
+          {id:'c10',name:'DJI 드론',img:'무제 폴더/DJI드론.png'},
+        ],
+        '렌즈': [
+          {id:'l1',name:'COOKE SP3 SET',img:'무제 폴더/쿠크 렌즈.png'},
+          {id:'l2',name:'Sony FE 35mm GM 1번',img:'무제 폴더/35mm.png'},
+          {id:'l3',name:'Sony FE 35mm GM 2번',img:'무제 폴더/35mm.png'},
+          {id:'l5',name:'Sony E-Mount F1.8 컴팩트 렌즈',img:'무제 폴더/컴팩트 렌즈.png'},
+          {id:'l6',name:'Sony FE 70-200mm GM 1번',img:'무제 폴더/70-200MM 렌즈.png'},
+          {id:'l7',name:'Sony FE 70-200mm GM 2번',img:'무제 폴더/70-200MM 렌즈.png'},
+          {id:'l8',name:'Sony FE 16-35mm f/2.8 GM 1번',img:'무제 폴더/24-70 렌즈.png'},
+          {id:'l8b',name:'Sony FE 16-35mm f/2.8 GM 2번',img:'무제 폴더/24-70 렌즈.png'},
+          {id:'l9',name:'Sony FE 24-70mm GM 1번',img:'무제 폴더/24-70 렌즈.png'},
+          {id:'l10',name:'Sony FE 24-70mm GM 2번',img:'무제 폴더/24-70 렌즈.png'},
+          {id:'l11',name:'Sony FE 24-70mm GM 3번',img:'무제 폴더/24-70 렌즈.png'},
+          {id:'l12',name:'Sony 85mm f/1.4 GM 1번',img:'무제 폴더/85mm 렌즈.png'},
+          {id:'l13',name:'Sony 85mm f/1.4 GM 2번',img:'무제 폴더/85mm 렌즈.png'},
+          {id:'l14',name:'Sony 85mm f/1.4 GM 3번',img:'무제 폴더/85mm 렌즈.png'},
+        ],
+        '삼각대&짐벌': [
+          {id:'t1',name:'카토니 포커스 22씨네',img:'무제 폴더/카토니 FOCUS 22.png'},
+          {id:'t2',name:'iFootage GazelleTripod TC9 1번',img:'무제 폴더/iFootage GazelleTripod TC9.png'},
+          {id:'t3',name:'iFootage GazelleTripod TC9 2번',img:'무제 폴더/iFootage GazelleTripod TC9.png'},
+          {id:'t4',name:'iFootage GazelleTripod TC9 3번',img:'무제 폴더/iFootage GazelleTripod TC9.png'},
+          {id:'t5',name:'DJI 로닌 프로 2 짐벌 1번',img:'무제 폴더/DJI 로닌 프로 2.png'},
+          {id:'t6',name:'DJI 로닌 프로 2 짐벌 2번',img:'무제 폴더/DJI 로닌 프로 2.png'},
+          {id:'t7',name:'틸타 링그립',img:'무제 폴더/틸타 링그립.png'},
+          {id:'t8',name:'이지리그',img:'무제 폴더/이지리그.png'},
+          {id:'t9',name:'숄더리그',img:'무제 폴더/숄더리그핸들패드구성.png'},
+          {id:'t10',name:'movmax 그립달리 pro kit',img:'무제 폴더/movmax 그립달리 pro kit.png'},
+          {id:'t11',name:'Ace M GS Mk II (샤틀러)',img:'무제 폴더/Ace M GS Mk II.png'},
+        ],
+        '부속품': [
+          {id:'ac5',name:'팔로우 포커스 수동 1번',img:'무제 폴더/수동 팔로우 포커스.png'},
+          {id:'ac6',name:'팔로우 포커스 수동 2번',img:'무제 폴더/수동 팔로우 포커스.png'},
+          {id:'ac7',name:'팔로우 포커스 수동 3번',img:'무제 폴더/수동 팔로우 포커스.png'},
+          {id:'ac8',name:'Nucleus 무선 팔로우 포커스',img:'무제 폴더/Nucleus 무선 팔로우 포커스.png'},
+          {id:'ac9',name:'매트박스 1번',img:'무제 폴더/매트 박스.png'},
+          {id:'ac10',name:'매트박스 2번',img:'무제 폴더/매트 박스.png'},
+          {id:'ac11',name:'매트박스 3번',img:'무제 폴더/매트 박스.png'},
+          {id:'ac12',name:'매트박스 4번',img:'무제 폴더/매트 박스.png'},
+          {id:'ac13',name:'매트박스 5번',img:'무제 폴더/매트 박스.png'},
+          {id:'ac14',name:'매트박스 6번',img:'무제 폴더/매트 박스.png'},
+          {id:'ac19',name:'매직암 1번',img:'무제 폴더/매직암.png'},
+          {id:'ac20',name:'매직암 2번',img:'무제 폴더/매직암.png'},
+          {id:'ac21',name:'매직암 3번',img:'무제 폴더/매직암.png'},
+          {id:'ac22',name:'스몰리그 툴 키트 1번',img:'무제 폴더/스몰리그 툴 키트.png'},
+          {id:'ac24',name:'스몰리그 툴 키트 2번',img:'무제 폴더/스몰리그 툴 키트.png'},
+          {id:'ac23',name:'홀리랜드 송수신기 세트 1번',img:'무제 폴더/HOLLYLAND MARS 4K SET.png'},
+        ],
+        '모니터': [
+          {id:'mo1',name:'HOLLYLAND MARS-M1 1번',img:'무제 폴더/HOLLYLAND MARS-M1.png'},
+          {id:'mo2',name:'HOLLYLAND MARS-M1 2번',img:'무제 폴더/HOLLYLAND MARS-M1.png'},
+          {id:'mo3',name:'HOLLYLAND MARS-M1 3번',img:'무제 폴더/HOLLYLAND MARS-M1.png'},
+          {id:'mo4',name:'Smaller indie 7',img:'무제 폴더/Smaller indie 7.png'},
+          {id:'mo5',name:'아트모스 쇼군 7인치',img:'무제 폴더/쇼군7인치.png'},
+          {id:'mo6',name:'TVLogic LVM-181S',img:'무제 폴더/TVLogic LVM-181S 18.5IN FHD PBP LCD Monitor.png'},
+        ],
+        'SD': [
+          {id:'sd1',name:'Sony 80GB CFexpress Type A 1번',img:'무제 폴더/SD 80,160.png'},
+          {id:'sd2',name:'Sony 160GB CFexpress Type A 1번',img:'무제 폴더/SD 80,160.png'},
+          {id:'sd3',name:'Sony 160GB CFexpress Type A 2번',img:'무제 폴더/SD 80,160.png'},
+          {id:'sd4',name:'Sony 160GB CFexpress Type A 3번',img:'무제 폴더/SD 80,160.png'},
+          {id:'sd5',name:'Sony 160GB CFexpress Type A 4번',img:'무제 폴더/SD 80,160.png'},
+          {id:'sd6',name:'Sony 160GB CFexpress Type A 5번',img:'무제 폴더/SD 80,160.png'},
+          {id:'sd7',name:'Sony 160GB CFexpress Type A 6번',img:'무제 폴더/SD 80,160.png'},
+          {id:'sd8',name:'SD 리더기 1번',img:'무제 폴더/소니 SD카드 리더기.png'},
+          {id:'sd9',name:'SD 리더기 2번',img:'무제 폴더/소니 SD카드 리더기.png'},
+          {id:'sd10',name:'SD 리더기 3번',img:'무제 폴더/소니 SD카드 리더기.png'},
+          {id:'sd11',name:'SD 리더기 4번',img:'무제 폴더/소니 SD카드 리더기.png'},
+        ],
+      },
+      '💡 조명': {
+        '조명': [
+          {id:'li1',name:'시네로이드 120W 1번',img:'무제 폴더/시네로이드 120W.png'},
+          {id:'li2',name:'시네로이드 120W 2번',img:'무제 폴더/시네로이드 120W.png'},
+          {id:'li3',name:'시네로이드 120W 3번',img:'무제 폴더/시네로이드 120W.png'},
+          {id:'li4',name:'시네로이드 120W 4번',img:'무제 폴더/시네로이드 120W.png'},
+          {id:'li5',name:'시네로이드 120W 5번',img:'무제 폴더/시네로이드 120W.png'},
+          {id:'li6',name:'시네로이드 120W 6번',img:'무제 폴더/시네로이드 120W.png'},
+          {id:'li7',name:'SmallRig RC 220B 1번',img:'무제 폴더/17191367_2-removebg-preview.png'},
+          {id:'li8',name:'SmallRig RC 220B 2번',img:'무제 폴더/17191367_2-removebg-preview.png'},
+          {id:'li9',name:'SmallRig RC 220B 3번',img:'무제 폴더/17191367_2-removebg-preview.png'},
+          {id:'li10',name:'SmallRig RC 220B 4번',img:'무제 폴더/17191367_2-removebg-preview.png'},
+          {id:'li11',name:'SmallRig RC 220B 5번',img:'무제 폴더/17191367_2-removebg-preview.png'},
+          {id:'li12',name:'SmallRig RC 220B 6번',img:'무제 폴더/17191367_2-removebg-preview.png'},
+          {id:'li13',name:'SmallRig RC 220B 7번',img:'무제 폴더/17191367_2-removebg-preview.png'},
+          {id:'li14',name:'SmallRig RC 220B 8번',img:'무제 폴더/17191367_2-removebg-preview.png'},
+          {id:'li15',name:'SmallRig RC 220B 9번',img:'무제 폴더/17191367_2-removebg-preview.png'},
+          {id:'li16',name:'Aputure amaran F21C',img:'무제 폴더/Aputure amaran F21C.png'},
+          {id:'li17',name:'Aputure amaran F22C',img:'무제 폴더/Aputure amaran F22C.png'},
+          {id:'li18',name:'Aputure 600x pro',img:'무제 폴더/Aputure 600x pro.png'},
+          {id:'li19',name:'Aputure 600c pro',img:'무제 폴더/Aputure 600C pro.png'},
+          {id:'li20',name:'Aputure MC 조명',img:'무제 폴더/MC키트.png'},
+          {id:'li21',name:'Aputure 1200d pro',img:'무제 폴더/1200D.png'},
+          {id:'li22',name:'프레넬 렌즈 1번',img:'무제 폴더/프레넬 렌즈.png'},
+          {id:'li23',name:'프레넬 렌즈 2번',img:'무제 폴더/프레넬 렌즈.png'},
+          {id:'li24',name:'프레넬 렌즈 3번',img:'무제 폴더/프레넬 렌즈.png'},
+          {id:'li25',name:'Skypanel S60 1번',img:'무제 폴더/Skypanel S60.png'},
+          {id:'li26',name:'Skypanel S60 2번',img:'무제 폴더/Skypanel S60.png'},
+          {id:'li27',name:'Skypanel S60 3번',img:'무제 폴더/Skypanel S60.png'},
+          {id:'li28',name:'BL2280 (라이트 패드)',img:'무제 폴더/BL2280.png'},
+          {id:'li29',name:'FOMEX E200',img:'무제 폴더/FOMEX E200.png'},
+          {id:'li30',name:'FOMEX E400 1번',img:'무제 폴더/FOMEX E400.png'},
+          {id:'li31',name:'FOMEX E400 2번',img:'무제 폴더/FOMEX E400.png'},
+          {id:'li32',name:'POTIN-150',img:'무제 폴더/POTIN- 150.png'},
+        ],
+        '고보': [
+          {id:'go1',name:'고보&디퓨저',img:'무제 폴더/고보및 실크.png'},
+          {id:'go2',name:'Lee 필터',img:'무제 폴더/필터.png'},
+          {id:'go3',name:'PFB2424 Kit DFS',img:'무제 폴더/PFB2424 Kit DFS.png'},
+        ],
+        '스탠드': [
+          {id:'st1',name:'베이비 콤보 1번',img:'무제 폴더/베이비 스텐드.png'},
+          {id:'st2',name:'베이비 콤보 2번',img:'무제 폴더/베이비 스텐드.png'},
+          {id:'st3',name:'C스탠드',img:'무제 폴더/C스텐드.png'},
+          {id:'st4',name:'A스탠드',img:'무제 폴더/a스텐드.png'},
+          {id:'st6',name:'2180 BoomStand',img:'무제 폴더/2180 BoomStand.png'},
+        ],
+      },
+      '🎙 오디오': {
+        '오디오': [
+          {id:'a1',name:'Windshield WS Kit 1번',img:'무제 폴더/Windshield WS Kit.png'},
+          {id:'a2',name:'Windshield WS Kit 2번',img:'무제 폴더/Windshield WS Kit.png'},
+          {id:'a3',name:'Windshield WS Kit 3번',img:'무제 폴더/Windshield WS Kit.png'},
+          {id:'a4',name:'K-Tek KE79 Boom Pole SET 1번',img:'무제 폴더/K-Tek KE79 Boom Pole SET.png'},
+          {id:'a5',name:'K-Tek KE79 Boom Pole SET 2번',img:'무제 폴더/K-Tek KE79 Boom Pole SET.png'},
+          {id:'a6',name:'K-Tek KE79 Boom Pole SET 3번',img:'무제 폴더/K-Tek KE79 Boom Pole SET.png'},
+          {id:'a7',name:'K-Tek KE79CCR Boom Pole SET',img:'무제 폴더/K-Tek KE79CCR Boom Pole SET.png'},
+          {id:'a8',name:'TASCAM DR-70D 1번',img:'무제 폴더/TASCAM DR-70D.png'},
+          {id:'a9',name:'TASCAM DR-70D 2번',img:'무제 폴더/TASCAM DR-70D.png'},
+          {id:'a10',name:'TASCAM DR-70D 3번',img:'무제 폴더/TASCAM DR-70D.png'},
+          {id:'a11',name:'ZOOM F8 PRO 레코더',img:'무제 폴더/ZOOM.png'},
+          {id:'a12',name:'SONY UWP-D21 SET1',img:'무제 폴더/SONY UWP-D21.png'},
+          {id:'a13',name:'SONY UWP-D21 SET2',img:'무제 폴더/SONY UWP-D21.png'},
+          {id:'a14',name:'SONY UWP-D21 SET3',img:'무제 폴더/SONY UWP-D21.png'},
+          {id:'a15',name:'SONY UWP-D21 SET4',img:'무제 폴더/SONY UWP-D21.png'},
+        ],
+      },
+      '🎒 악세서리': {
+        '가방/카트': [
+          {id:'bg1',name:'씨네 카트',img:'무제 폴더/씨네 카트.png'},
+          {id:'bg2',name:'웨건 1번',img:'무제 폴더/웨건.png'},
+          {id:'bg3',name:'웨건 2번',img:'무제 폴더/웨건.png'},
+          {id:'bg4',name:'웨건 3번',img:'무제 폴더/웨건.png'},
+          {id:'bg5',name:'카메라 가방 1번',img:'무제 폴더/카메라 가방.png'},
+          {id:'bg6',name:'카메라 가방 2번',img:'무제 폴더/카메라 가방.png'},
+          {id:'bg7',name:'카메라 가방 3번',img:'무제 폴더/카메라 가방.png'},
+          {id:'bg8',name:'카메라 가방 백팩형 1번',img:'무제 폴더/카메라가방백팩형.png'},
+          {id:'bg9',name:'카메라 가방 백팩형 2번',img:'무제 폴더/카메라가방백팩형.png'},
+          {id:'bg10',name:'카메라 가방 백팩형 3번',img:'무제 폴더/카메라가방백팩형.png'},
+        ],
+        '특수장치': [
+          {id:'sm1',name:'포그 머신',img:'무제 폴더/포기기.jpg'},
+          {id:'sm2',name:'배경지',img:'무제 폴더/배경지.png'},
+          {id:'sm3',name:'휴대용 프로젝터 스크린',img:'무제 폴더/휴대용 프로젝터 스크린.png'},
+        ],
+        '라인': [
+          {id:'ln1',name:'SDI·HDMI 라인',img:'무제 폴더/images__3_-removebg-preview.png'},
+        ],
+        '배터리': [
+          {id:'bt2',name:'NP-FZ100 배터리',img:'무제 폴더/np-fz100.png'},
+          {id:'bt3',name:'E-CUBE 195w',img:'무제 폴더/E-CUBE 195w.png'},
+          {id:'bt4',name:'젠트리 몬스터 390W26A',img:'무제 폴더/젠트리 몬스터 390W26A.png'},
+          {id:'bt5',name:'NP-F970 배터리',img:'무제 폴더/np-f970.png'},
+          {id:'bt6',name:'BP-U100 배터리',img:'무제 폴더/bp-u100.png'},
+          {id:'bt7',name:'BP-U35 배터리',img:'무제 폴더/bp-u35.png'},
+        ],
+      },
+    };
 
     let disabledEquipIds = new Set();
 
@@ -673,23 +819,36 @@
       const data = await r.json();
       disabledEquipIds = new Set((data || []).map(d => d.id));
 
-      el.innerHTML = ALL_EQUIPMENT_FLAT.map(item => {
-        const isDisabled = disabledEquipIds.has(item.id);
-        return `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:10px;background:#13131a;border:1px solid ${isDisabled ? '#ef4444' : '#2a2a3a'};">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span style="width:8px;height:8px;border-radius:50%;background:${isDisabled ? '#ef4444' : '#44c67f'};flex-shrink:0;"></span>
-            <span style="font-size:13px;color:${isDisabled ? '#8888a0' : '#e8e8f0'};${isDisabled ? 'text-decoration:line-through;' : ''}">${item.name}</span>
-            ${isDisabled ? '<span style="font-size:10px;background:rgba(239,68,68,0.15);color:#ef4444;padding:2px 7px;border-radius:20px;font-weight:600;">대여 불가</span>' : ''}
-          </div>
-          <button onclick="toggleEquipDisabled('${item.id}', ${isDisabled})"
-            style="font-size:12px;font-weight:600;padding:5px 14px;border-radius:7px;border:none;cursor:pointer;font-family:inherit;
-            background:${isDisabled ? 'rgba(68,198,127,0.15)' : 'rgba(239,68,68,0.15)'};
-            color:${isDisabled ? '#44c67f' : '#ef4444'};">
-            ${isDisabled ? '✓ 대여 허용' : '✕ 대여 차단'}
-          </button>
-        </div>`;
-      }).join('');
+      let html = '';
+      for (const [cat, subcats] of Object.entries(ADMIN_EQUIPMENT)) {
+        html += `<div style="margin-bottom:28px;">
+          <h3 style="font-size:15px;font-weight:700;color:#e8b84b;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #2a2a3a;">${cat}</h3>`;
+        for (const [subcat, items] of Object.entries(subcats)) {
+          html += `<p style="font-size:11px;font-weight:600;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;margin:12px 0 8px;">${subcat}</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">`;
+          for (const item of items) {
+            const isDisabled = disabledEquipIds.has(item.id);
+            const imgSrc = './' + item.img.split('/').map(p => encodeURIComponent(p)).join('/');
+            html += `
+            <div style="border-radius:10px;background:#13131a;border:1.5px solid ${isDisabled ? '#ef4444' : '#2a2a3a'};padding:12px;display:flex;flex-direction:column;gap:8px;opacity:${isDisabled ? '0.7' : '1'};">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <img src="${imgSrc}" alt="${item.name}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;background:#1c1c28;padding:2px;flex-shrink:0;"
+                  onerror="this.style.display='none'">
+                <span style="font-size:12px;color:${isDisabled ? '#6a6a80' : '#e8e8f0'};line-height:1.4;${isDisabled ? 'text-decoration:line-through;' : ''}">${item.name}</span>
+              </div>
+              <button onclick="toggleEquipDisabled('${item.id}', ${isDisabled})"
+                style="width:100%;font-size:11px;font-weight:600;padding:5px 0;border-radius:6px;border:none;cursor:pointer;font-family:inherit;
+                background:${isDisabled ? 'rgba(68,198,127,0.15)' : 'rgba(239,68,68,0.12)'};
+                color:${isDisabled ? '#44c67f' : '#ef4444'};">
+                ${isDisabled ? '✓ 대여 허용' : '✕ 대여 차단'}
+              </button>
+            </div>`;
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+      el.innerHTML = html;
     }
 
     async function toggleEquipDisabled(itemId, currentlyDisabled) {
