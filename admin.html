@@ -141,6 +141,11 @@
                 style="color: #8888a0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; border-left: none; border-right: none; border-top: none; cursor: pointer;">
           회원 리스트
         </button>
+        <button onclick="switchAdminTab('equipment')" id="admin-tab-equipment"
+                class="text-sm font-semibold px-5 py-3 transition-colors"
+                style="color: #8888a0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; border-left: none; border-right: none; border-top: none; cursor: pointer;">
+          장비 관리
+        </button>
       </div>
     </div>
 
@@ -205,6 +210,12 @@
       </div>
     </div>
   </div>
+
+    <!-- ── 장비 관리 탭 ── -->
+    <div id="panel-equipment" class="hidden max-w-6xl mx-auto px-5 pb-8">
+      <p class="text-sm mb-5" style="color:#8888a0;">장비를 비활성화하면 대여 신청 페이지에서 선택할 수 없습니다.</p>
+      <div id="equipment-list" class="space-y-2"></div>
+    </div>
 
     <!-- ── 회원 리스트 탭 ── -->
     <div id="panel-members" class="hidden max-w-6xl mx-auto px-5 pb-8">
@@ -337,7 +348,7 @@
     // ─── 탭 전환 ───
     function switchAdminTab(tab) {
       currentAdminTab = tab;
-      const tabs = ['rentals', 'users', 'members'];
+      const tabs = ['rentals', 'users', 'members', 'equipment'];
       tabs.forEach(t => {
         const btn = document.getElementById(`admin-tab-${t}`);
         const panel = document.getElementById(`panel-${t}`);
@@ -353,6 +364,7 @@
       });
       if (tab === 'users') renderUsers();
       if (tab === 'members') renderMembers();
+      if (tab === 'equipment') renderEquipmentManager();
     }
 
     // ─── 통계 업데이트 ───
@@ -611,6 +623,89 @@
         if (!r.ok) { r.text().then(t => alert('삭제 실패: ' + t)); return; }
         renderMembers();
       }).catch(e => alert('오류: ' + e.message));
+    }
+
+    // ─── 장비 관리 ───
+    const ALL_EQUIPMENT_FLAT = [
+      // 바디
+      {id:'c1',name:'Sony FX3 리그 세트 1번'},{id:'c2',name:'Sony FX3 리그 세트 2번'},{id:'c3',name:'Sony FX3 리그 세트 3번'},
+      {id:'c4',name:'Sony FX6 리그 세트'},{id:'c5',name:'Sony A7S3 리그 세트'},{id:'c6',name:'GoPro Hero 11 Black 1번'},
+      {id:'c7',name:'GoPro Hero 11 Black 2번'},{id:'c8',name:'GoPro Hero 11 Black 3번'},{id:'c9',name:'DJI Osmo Pocket 3'},
+      // 렌즈
+      {id:'l1',name:'Sony FE 16-35mm f/2.8 GM 2번'},{id:'l2',name:'Sony FE 24-70mm f/2.8 GM 2번'},
+      {id:'l3',name:'Sony FE 70-200mm f/2.8 GM OSS'},{id:'l4',name:'Sony FE 50mm f/1.2 GM'},
+      {id:'l5',name:'Sony FE 14mm f/1.8 GM'},{id:'l6',name:'COOKE SP3 SET'},{id:'l7',name:'Sony 160GB CFexpress Type A 1번'},
+      {id:'l8',name:'Sony 160GB CFexpress Type A 2번'},
+      // 삼각대&짐벌
+      {id:'t1',name:'Sachtler 유체 삼각대'},{id:'t2',name:'Leofoto 카본 삼각대 1번'},{id:'t3',name:'Leofoto 카본 삼각대 2번'},
+      {id:'t4',name:'Leofoto 카본 삼각대 3번'},{id:'t5',name:'DJI 로닌 프로 2 짐벌 1번'},{id:'t6',name:'DJI 로닌 프로 2 짐벌 2번'},
+      // 악세서리
+      {id:'ac1',name:'SmallRig 퀵릴리즈 플레이트'},{id:'ac2',name:'DJI 드론 (Air3)'},{id:'ac3',name:'Atomos Shogun 모니터 1번'},
+      {id:'ac4',name:'Atomos Shogun 모니터 2번'},{id:'ac5',name:'FEELWORLD F6 PLUS 모니터'},
+      {id:'ac6',name:'HOLLYLAND COSMO C1 무선 송수신기 세트'},{id:'ac23',name:'홀리랜드 송수신기 세트 1번'},
+      {id:'sm2',name:'배경지'},{id:'sm3',name:'휴대용 프로젝터 스크린'},
+      // 조명
+      {id:'li1',name:'NANLITE FORZA 500 II'},{id:'li2',name:'NANLITE FORZA 300 II 1번'},{id:'li3',name:'NANLITE FORZA 300 II 2번'},
+      {id:'li4',name:'NANLUX EVOKE 1200'},{id:'li5',name:'Aputure Light Dome II'},{id:'li6',name:'Aputure Light Dome Mini II'},
+      {id:'li7',name:'NANLITE PavoTube II 30X'},{id:'li8',name:'Quasar Science Q-LED Rainbow 2'},{id:'li9',name:'POTIN- 150'},
+      {id:'li10',name:'Falcon Eyes RX-318TD 1번'},{id:'li11',name:'Falcon Eyes RX-318TD 2번'},
+      {id:'li28',name:'FOMEX E200'},{id:'li29',name:'FOMEX E400'},{id:'li30',name:'Ace M GS Mk II'},
+      {id:'li31',name:'BL2280'},{id:'li32',name:'PFB2424 Kit DFS'},
+      // 스탠드
+      {id:'st1',name:'C스탠드(대) 1번'},{id:'st2',name:'C스탠드(대) 2번'},{id:'st3',name:'C스탠드(중)'},
+      {id:'st4',name:'A스탠드'},{id:'st6',name:'2180 BoomStand (탑 핸드 스탠드)'},{id:'st7',name:'라이트 스탠드'},
+      // 가방/카트
+      {id:'bg1',name:'씨네 카트'},{id:'bg2',name:'카메라 가방 1번'},{id:'bg3',name:'카메라 가방 2번'},
+      // 배터리
+      {id:'bt2',name:'NP-FZ100 배터리'},{id:'bt3',name:'E-CUBE 195w'},{id:'bt4',name:'젠트리 몬스터 390W26A'},
+      {id:'bt5',name:'NP-F970 배터리'},{id:'bt6',name:'BP-U100 배터리(FX6 배터리)'},{id:'bt7',name:'BP-U35 배터리(FX6 배터리)'},
+    ];
+
+    let disabledEquipIds = new Set();
+
+    async function renderEquipmentManager() {
+      const el = document.getElementById('equipment-list');
+      el.innerHTML = '<p style="color:#8888a0;font-size:13px;">불러오는 중...</p>';
+
+      const r = await fetch(SUPA_URL + '/rest/v1/disabled_equipment?select=id', {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+      });
+      const data = await r.json();
+      disabledEquipIds = new Set((data || []).map(d => d.id));
+
+      el.innerHTML = ALL_EQUIPMENT_FLAT.map(item => {
+        const isDisabled = disabledEquipIds.has(item.id);
+        return `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:10px;background:#13131a;border:1px solid ${isDisabled ? '#ef4444' : '#2a2a3a'};">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:${isDisabled ? '#ef4444' : '#44c67f'};flex-shrink:0;"></span>
+            <span style="font-size:13px;color:${isDisabled ? '#8888a0' : '#e8e8f0'};${isDisabled ? 'text-decoration:line-through;' : ''}">${item.name}</span>
+            ${isDisabled ? '<span style="font-size:10px;background:rgba(239,68,68,0.15);color:#ef4444;padding:2px 7px;border-radius:20px;font-weight:600;">대여 불가</span>' : ''}
+          </div>
+          <button onclick="toggleEquipDisabled('${item.id}', ${isDisabled})"
+            style="font-size:12px;font-weight:600;padding:5px 14px;border-radius:7px;border:none;cursor:pointer;font-family:inherit;
+            background:${isDisabled ? 'rgba(68,198,127,0.15)' : 'rgba(239,68,68,0.15)'};
+            color:${isDisabled ? '#44c67f' : '#ef4444'};">
+            ${isDisabled ? '✓ 대여 허용' : '✕ 대여 차단'}
+          </button>
+        </div>`;
+      }).join('');
+    }
+
+    async function toggleEquipDisabled(itemId, currentlyDisabled) {
+      if (currentlyDisabled) {
+        await fetch(SUPA_URL + '/rest/v1/disabled_equipment?id=eq.' + itemId, {
+          method: 'DELETE',
+          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Prefer': 'return=minimal' }
+        });
+      } else {
+        await fetch(SUPA_URL + '/rest/v1/disabled_equipment', {
+          method: 'POST',
+          headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ id: itemId })
+        });
+      }
+      renderEquipmentManager();
     }
 
     // ─── 회원 승인 / 거절 (fetch API 직접 사용) ───

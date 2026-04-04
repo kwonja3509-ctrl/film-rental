@@ -925,7 +925,9 @@ function toggleRulesEq() {
 
 function buildCard(item, cat, subcat, visible) {
   const icon = subcat ? (SUBCAT_ICONS[subcat] || CAT_ICONS[cat]) : (CAT_ICONS[cat] || '📦');
-  const isRented = !item.freeRent && rentedItems.has(item.name);
+  const isDisabled = disabledEquipIds.has(item.id);
+  const isRented = isDisabled || (!item.freeRent && rentedItems.has(item.name));
+  const disabledBadge = isDisabled ? '<span class="rented-badge" style="background:#8A8A86;">대여 불가</span>' : '';
   const imgHtml = item.img
     ? `<img src="./${item.img.split('/').map(p=>encodeURIComponent(p)).join('/')}" alt="${item.name}" style="width:46px;height:46px;object-fit:contain;border-radius:8px;${item.imgScale ? `transform:scale(${item.imgScale});` : ''}">`
     : `<div class="equip-icon">${icon}</div>`;
@@ -962,7 +964,7 @@ function buildCard(item, cat, subcat, visible) {
       <label for="rfe-${item.id}" onclick="event.preventDefault()">
         ${imgHtml}
         <span class="equip-name">${item.name}</span>
-        ${isRented?'<span class="rented-badge">대여중</span>':''}
+        ${isDisabled ? disabledBadge : isRented ? '<span class="rented-badge">대여중</span>' : ''}
       </label>
       <div class="equip-check">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
@@ -1202,12 +1204,15 @@ function toggleHistoryDetail(card) {
 
 /* ── 승인된 대여 전체 로드 ── */
 let allApprovedRentals = [];
+let disabledEquipIds = new Set();
 
 async function loadRentedItems() {
-  const { data } = await sb.from('rentals')
-    .select('items, start_date, end_date')
-    .eq('status', 'approved');
-  allApprovedRentals = data || [];
+  const [rentalsRes, disabledRes] = await Promise.all([
+    sb.from('rentals').select('items, start_date, end_date').eq('status', 'approved'),
+    sb.from('disabled_equipment').select('id')
+  ]);
+  allApprovedRentals = rentalsRes.data || [];
+  disabledEquipIds = new Set((disabledRes.data || []).map(d => d.id));
   const today = new Date().toISOString().split('T')[0];
   recalcAvailability(today, today);
 }
