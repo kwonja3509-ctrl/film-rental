@@ -638,7 +638,7 @@ async function doLogin() {
   if (!user) { err.classList.add('on'); return; }
   if (user.approved === false) { err.textContent = '관리자 승인 대기 중입니다. 승인 후 로그인이 가능합니다.'; err.classList.add('on'); return; }
   currentUser = user;
-  sessionStorage.setItem('film_user', JSON.stringify(user));
+  localStorage.setItem('film_user', JSON.stringify(user));
   const nu = document.getElementById('nav-user'); nu.textContent = `${user.name} 님 ▾`; nu.style.display = 'block';
   document.getElementById('ef-name').value = user.name;
   document.getElementById('ef-sid').value  = user.id;
@@ -833,7 +833,7 @@ buildTimeOptions(document.getElementById('ef-start-time'));
 buildTimeOptions(document.getElementById('ef-end-time'));
 setDateDefaults();
 (function init() {
-  const saved = sessionStorage.getItem('film_user');
+  const saved = localStorage.getItem('film_user');
   if (saved) {
     currentUser = JSON.parse(saved);
     const nu = document.getElementById('nav-user'); nu.textContent = `${currentUser.name} 님 ▾`; nu.style.display = 'block';

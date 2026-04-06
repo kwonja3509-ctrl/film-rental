@@ -802,7 +802,7 @@ async function doLogin() {
   }
 
   currentUser = user;
-  sessionStorage.setItem('film_user', JSON.stringify(user));
+  localStorage.setItem('film_user', JSON.stringify(user));
   document.getElementById('nav-user').textContent = `${user.name} 님 ▾`;
   document.getElementById('nav-user').style.display = 'inline-block';
   document.getElementById('nav-logout-btn').style.display = 'inline';
@@ -824,7 +824,7 @@ async function doLogin() {
 /* ── 로그아웃 ── */
 function doLogout() {
   currentUser = null;
-  sessionStorage.removeItem('film_user');
+  localStorage.removeItem('film_user');
   document.getElementById('nav-user').style.display = 'none';
   document.getElementById('nav-user').textContent = '';
   document.getElementById('nav-logout-btn').style.display = 'none';
@@ -1129,7 +1129,7 @@ async function saveProfile() {
   const { error } = await sb.from('film_users').update({ email, phone }).eq('id', currentUser.id);
   if (error) { msg.style.color = '#EF4444'; msg.textContent = '저장 실패'; return; }
   currentUser.email = email; currentUser.phone = phone;
-  sessionStorage.setItem('film_user', JSON.stringify(currentUser));
+  localStorage.setItem('film_user', JSON.stringify(currentUser));
   msg.style.color = '#22C55E'; msg.textContent = '저장됐습니다!';
 }
 
@@ -1168,7 +1168,7 @@ async function cancelRental(id) {
 
 /* ── 초기화 ── */
 (function restoreSession() {
-  const saved = sessionStorage.getItem('film_user');
+  const saved = localStorage.getItem('film_user');
   if (saved) {
     currentUser = JSON.parse(saved);
     document.getElementById('nav-user').textContent = `${currentUser.name} 님 ▾`;

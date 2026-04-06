@@ -781,7 +781,7 @@ async function doLogin() {
     err.classList.add('on'); return;
   }
   currentUser = user;
-  sessionStorage.setItem('film_user', JSON.stringify(user));
+  localStorage.setItem('film_user', JSON.stringify(user));
   const navUser = document.getElementById('nav-user');
   navUser.textContent = `${user.name} 님 ▾`;
   navUser.style.display = 'block';
@@ -1258,7 +1258,7 @@ function recalcAvailability(startDate, endDate) {
 setDateDefaults();
 (async () => { await loadRentedItems(); })();
 (function init() {
-  const saved = sessionStorage.getItem('film_user');
+  const saved = localStorage.getItem('film_user');
   if (saved) {
     currentUser = JSON.parse(saved);
     const navUser = document.getElementById('nav-user');
