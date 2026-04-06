@@ -56,6 +56,21 @@
     #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
     #app-screen { display: none; }
     #app-screen.active { display: block; }
+    #notice-popup {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px); z-index: 200;
+      display: none; align-items: center; justify-content: center;
+    }
+    #notice-popup.active { display: flex; }
+    .notice-box {
+      background: #13131a; border: 1px solid #2a2a3a;
+      border-radius: 16px; width: 90%; max-width: 420px;
+      overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+    .notice-header {
+      background: #e8b84b; padding: 16px 20px;
+      display: flex; align-items: center; gap-10px;
+    }
   </style>
 </head>
 <body class="font-sans">
@@ -330,10 +345,15 @@
         await loadRentals();
         renderAll();
         startSessionWatch();
+        document.getElementById('notice-popup').classList.add('active');
       } else {
         document.getElementById('pw-error').classList.remove('hidden');
         document.getElementById('pw-input').value = '';
       }
+    }
+
+    function closeNoticePopup() {
+      document.getElementById('notice-popup').classList.remove('active');
     }
 
     function logout() {
@@ -1040,5 +1060,36 @@
       if (currentAdminTab === 'users') renderUsers();
     }
   </script>
+
+  <!-- ─── 공지사항 팝업 ─── -->
+  <div id="notice-popup">
+    <div class="notice-box">
+      <!-- 팝업 헤더 -->
+      <div class="notice-header" style="display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0f" stroke-width="2.5">
+            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+          </svg>
+          <span style="font-weight:700; font-size:15px; color:#0a0a0f;">공지사항</span>
+        </div>
+        <button onclick="closeNoticePopup()" style="background:rgba(0,0,0,0.15); border:none; border-radius:6px; width:28px; height:28px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0a0a0f" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <!-- 공지 이미지 -->
+      <div style="padding: 16px 20px 0;">
+        <img src="제목을%20입력해주세요.%20(3).png" alt="공지사항"
+             style="width:100%; border-radius:10px; display:block;">
+      </div>
+      <!-- 확인 버튼 -->
+      <div style="padding: 16px 20px 20px;">
+        <button onclick="closeNoticePopup()" class="btn btn-gold" style="width:100%; padding:12px; font-size:14px;">
+          확인
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
