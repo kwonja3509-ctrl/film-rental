@@ -168,7 +168,8 @@
       </div>
 
       <!-- 필터 -->
-      <div class="flex gap-2 mb-6 flex-wrap">
+      <div class="flex gap-2 mb-6 flex-wrap items-center justify-between">
+      <div class="flex gap-2 flex-wrap">
         <button onclick="filterRentals('all')" id="filter-all" class="btn text-xs px-4 py-2"
                 style="background: #e8b84b; color: #0a0a0f; border-radius: 20px;">전체</button>
         <button onclick="filterRentals('pending')" id="filter-pending" class="btn text-xs px-4 py-2"
@@ -179,6 +180,14 @@
                 style="background: #1a1a24; color: #8888a0; border: 1px solid #2a2a3a; border-radius: 20px;">거절</button>
         <button onclick="filterRentals('returned')" id="filter-returned" class="btn text-xs px-4 py-2"
                 style="background: #1a1a24; color: #8888a0; border: 1px solid #2a2a3a; border-radius: 20px;">반납 완료</button>
+      </div>
+      <button onclick="refreshRentals()" class="btn text-xs px-4 py-2"
+              style="background: #1a1a24; color: #e8b84b; border: 1px solid rgba(232,184,75,0.3); border-radius: 20px; display:flex; align-items:center; gap:5px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+        새로고침
+      </button>
       </div>
 
       <!-- 신청 목록 -->
@@ -280,10 +289,12 @@
     let currentAdminTab = 'rentals';
 
     async function loadRentals() {
-      const r = await fetch(SUPA_URL + '/rest/v1/rentals?order=created_at.desc', {
-        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
-      });
-      rentals = r.ok ? await r.json() : [];
+      if (!sb) { rentals = []; return; }
+      const { data, error } = await sb.from('rentals').select('*').order('created_at', { ascending: false });
+      if (error) {
+        console.error('rentals 로드 오류:', error);
+      }
+      rentals = data || [];
     }
 
     // ─── 세션 타임아웃 (30분 비활성 → 자동 로그아웃) ───
@@ -635,6 +646,9 @@
           {id:'c8',name:'GoPro Hero 11 Black 1번',img:'무제 폴더/goPro_hero_11-removebg-preview.png'},
           {id:'c9',name:'GoPro Hero 11 Black 2번',img:'무제 폴더/goPro_hero_11-removebg-preview.png'},
           {id:'c10',name:'DJI 드론',img:'무제 폴더/DJI드론.png'},
+          {id:'xf305-1',name:'캐논 XF305 1번',img:'무제 폴더/캐논 XF305.jpeg'},
+          {id:'xf305-2',name:'캐논 XF305 2번',img:'무제 폴더/캐논 XF305.jpeg'},
+          {id:'xf305-3',name:'캐논 XF305 3번',img:'무제 폴더/캐논 XF305.jpeg'},
         ],
         '렌즈': [
           {id:'l1',name:'COOKE SP3 SET',img:'무제 폴더/쿠크 렌즈.png'},
@@ -664,6 +678,12 @@
           {id:'t9',name:'숄더리그',img:'무제 폴더/숄더리그핸들패드구성.png'},
           {id:'t10',name:'movmax 그립달리 pro kit',img:'무제 폴더/movmax 그립달리 pro kit.png'},
           {id:'t11',name:'Ace M GS Mk II (샤틀러)',img:'무제 폴더/Ace M GS Mk II.png'},
+          {id:'libec-rt50b-1',name:'Libec RT50B 1번',img:'무제 폴더/Libec RT50B.png'},
+          {id:'libec-rt50b-2',name:'Libec RT50B 2번',img:'무제 폴더/Libec RT50B.png'},
+          {id:'libec-rt50b-3',name:'Libec RT50B 3번',img:'무제 폴더/Libec RT50B.png'},
+          {id:'libec-dl3rb-1',name:'Libec DL-3RB 1번',img:'무제 폴더/Libec DL-3RB.png'},
+          {id:'libec-dl3rb-2',name:'Libec DL-3RB 2번',img:'무제 폴더/Libec DL-3RB.png'},
+          {id:'libec-dl3rb-3',name:'Libec DL-3RB 3번',img:'무제 폴더/Libec DL-3RB.png'},
         ],
         '부속품': [
           {id:'ac5',name:'팔로우 포커스 수동 1번',img:'무제 폴더/수동 팔로우 포커스.png'},
@@ -800,6 +820,8 @@
           {id:'bt5',name:'NP-F970 배터리',img:'무제 폴더/np-f970.png'},
           {id:'bt6',name:'BP-U100 배터리',img:'무제 폴더/bp-u100.png'},
           {id:'bt7',name:'BP-U35 배터리',img:'무제 폴더/bp-u35.png'},
+          {id:'bt8',name:'BP-970G 배터리 (XF305 캠코더)',img:'무제 폴더/XF305 캠코더 배터리 (제품명 BP-970G).png'},
+          {id:'bt9',name:'XF 배터리 충전기',img:'무제 폴더/XF 배터리 충전기.png'},
         ],
       },
     };
@@ -1033,6 +1055,14 @@
     document.getElementById('detail-modal').addEventListener('click', function(e) {
       if (e.target === this) closeDetailModal();
     });
+
+    async function refreshRentals() {
+      const btn = document.querySelector('[onclick="refreshRentals()"]');
+      if (btn) { btn.style.opacity = '0.5'; btn.style.pointerEvents = 'none'; }
+      await loadRentals();
+      renderAll();
+      if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = ''; }
+    }
 
     function renderAll() {
       updateStats();
